@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DJ Fiesta</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #1a1a1a;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.side {
+    width: 120px;
+    background: linear-gradient(180deg, #3a2a1a, #1a120a);
+    position: relative;
+    overflow: hidden;
+}
+
+/* LUCES */
+.light {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: gold;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatLight 6s infinite ease-in-out;
+}
+
+@keyframes floatLight {
+    0% { transform: translateY(100vh); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(-10vh); opacity: 0; }
+}
+
+.main {
+    flex: 1;
+    position: relative;
+}
+
+/* IFRAME */
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* CAPA PARA TAPAR LA PARTE SUPERIOR DE YOUDJ */
+.top-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px; /* ajusta si necesitas más */
+    background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.7));
+    z-index: 10;
+}
+
+/* TITULO DJ */
+.dj-name {
+    position: absolute;
+    top: 10px; /* MÁS ARRIBA */
+    width: 100%;
+    text-align: center;
+    font-size: 42px;
+    font-weight: bold;
+    color: #f5d27a;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+    z-index: 20;
+    cursor: pointer;
+}
+
+/* PARTICULAS */
+.particle {
+    position: absolute;
+    font-size: 18px;
+    animation: floatParticle linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+@keyframes floatParticle {
+    0% { transform: translateY(100vh); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-10vh); opacity: 0; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="side" id="leftSide"></div>
+
+    <div class="main">
+
+        <!-- TAPA LO VERDE -->
+        <div class="top-overlay"></div>
+
+        <!-- TITULO -->
+        <div class="dj-name" id="djName">DJ LENGUA</div>
+
+       <iframe width="560" height="315" src="https://www.youtube.com/embed/WJHsCInGHCs?si=mCV4OGt3aV0zsU0P" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+    </div>
+
+    <div class="side" id="rightSide"></div>
+
+</div>
+
+<script>
+
+// EDITAR NOMBRE
+const djName = document.getElementById("djName");
+
+djName.addEventListener("dblclick", () => {
+    const nuevo = prompt("Nuevo nombre DJ:");
+    if (nuevo) djName.innerText = nuevo.toUpperCase();
+});
+
+// LUCES
+function crearLuz(container) {
+    const light = document.createElement("div");
+    light.className = "light";
+    light.style.left = Math.random() * 100 + "%";
+    light.style.animationDuration = (4 + Math.random() * 4) + "s";
+    container.appendChild(light);
+
+    setTimeout(() => light.remove(), 8000);
+}
+
+setInterval(() => {
+    crearLuz(document.getElementById("leftSide"));
+    crearLuz(document.getElementById("rightSide"));
+}, 500);
+
+// PARTICULAS
+const emojis = ["✨", "🎶", "🥃"];
+
+function crearParticula() {
+    const p = document.createElement("div");
+    p.className = "particle";
+    p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.left = Math.random() * 100 + "%";
+    p.style.animationDuration = (5 + Math.random() * 5) + "s";
+    document.body.appendChild(p);
+
+    setTimeout(() => p.remove(), 10000);
+}
+
+setInterval(crearParticula, 900);
+
+</script>
+
+</body>
+</html>

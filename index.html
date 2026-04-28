@@ -1,167 +1,816 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>DJ Fiesta</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #1a1a1a;
-    overflow: hidden;
-}
-
-.container {
-    display: flex;
-    height: 100vh;
-}
-
-.side {
-    width: 120px;
-    background: linear-gradient(180deg, #3a2a1a, #1a120a);
-    position: relative;
-    overflow: hidden;
-}
-
-/* LUCES */
-.light {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: gold;
-    border-radius: 50%;
-    opacity: 0.6;
-    animation: floatLight 6s infinite ease-in-out;
-}
-
-@keyframes floatLight {
-    0% { transform: translateY(100vh); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translateY(-10vh); opacity: 0; }
-}
-
-.main {
-    flex: 1;
-    position: relative;
-}
-
-/* IFRAME */
-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-/* CAPA PARA TAPAR LA PARTE SUPERIOR DE YOUDJ */
-.top-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 70px; /* ajusta si necesitas más */
-    background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.7));
-    z-index: 10;
-}
-
-/* TITULO DJ */
-.dj-name {
-    position: absolute;
-    top: 10px; /* MÁS ARRIBA */
-    width: 100%;
-    text-align: center;
-    font-size: 42px;
-    font-weight: bold;
-    color: #f5d27a;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
-    z-index: 20;
-    cursor: pointer;
-}
-
-/* PARTICULAS */
-.particle {
-    position: absolute;
-    font-size: 18px;
-    animation: floatParticle linear infinite;
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-@keyframes floatParticle {
-    0% { transform: translateY(100vh); opacity: 0; }
-    20% { opacity: 1; }
-    100% { transform: translateY(-10vh); opacity: 0; }
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ CLAUDE PRO - YouTube DJ Controller</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      :root{
+        --dj-bg:#0a0a0f;
+        --dj-surface:#12121a;
+        --dj-card:#1a1a2e;
+        --dj-border:#2a2a40;
+        --dj-green:#00ff88;
+        --dj-cyan:#00d4ff;
+        --dj-pink:#ff2d78;
+        --dj-amber:#ffaa00;
+        --dj-text:#e0e0ff;
+        --dj-muted:#6060a0;
+      }
+      body{
+        background:var(--dj-bg);
+        color:var(--dj-text);
+        font-family:'Share Tech Mono',monospace;
+        padding:15px;
+        height:100vh;
+        overflow:hidden;
+      }
+      .dj-app{
+        max-width:1400px;
+        margin:0 auto;
+        height:100%;
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+      }
+      .header{text-align:center;flex-shrink:0}
+      .header h1{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:4px;color:var(--dj-cyan);text-transform:uppercase}
+      .header p{font-size:12px;color:var(--dj-muted);letter-spacing:2px;margin-top:4px}
+      
+      .main-layout{
+        display:grid;
+        grid-template-columns: 1fr 420px;
+        gap:15px;
+        flex:1;
+        min-height:0;
+      }
+      
+      .left-col{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        overflow-y:auto;
+        padding-right:5px;
+      }
+      
+      .decks{display:grid;grid-template-columns:1fr 1fr;gap:15px;flex-shrink:0}
+      .deck{background:var(--dj-card);border:1px solid var(--dj-border);border-radius:15px;padding:18px;position:relative}
+      .deck-a{border-top:3px solid var(--dj-cyan)}
+      .deck-b{border-top:3px solid var(--dj-pink)}
+      .deck-label{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;color:var(--dj-muted);margin-bottom:12px}
+      .deck-a .deck-label{color:var(--dj-cyan)}
+      .deck-b .deck-label{color:var(--dj-pink)}
+      .vinyl-wrap{display:flex;justify-content:center;margin-bottom:14px}
+      .vinyl{width:130px;height:130px;border-radius:50%;position:relative;cursor:pointer}
+      .vinyl canvas{border-radius:50%;display:block}
+      .track-info{text-align:center;margin-bottom:12px}
+      .track-title{font-size:14px;font-weight:700;color:var(--dj-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+      .track-artist{font-size:12px;color:var(--dj-muted);margin-top:3px}
+      .progress-bar{background:#1e1e30;border-radius:4px;height:5px;margin-bottom:12px;cursor:pointer;position:relative}
+      .progress-fill{height:100%;border-radius:4px;transition:width 0.5s linear}
+      .deck-a .progress-fill{background:var(--dj-cyan)}
+      .deck-b .progress-fill{background:var(--dj-pink)}
+      .time-row{display:flex;justify-content:space-between;font-size:11px;color:var(--dj-muted);margin-bottom:12px}
+      .deck-controls{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
+      .btn{background:var(--dj-surface);border:1px solid var(--dj-border);color:var(--dj-text);border-radius:8px;padding:8px 12px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;transition:all 0.15s}
+      .btn:hover{border-color:var(--dj-cyan);color:var(--dj-cyan)}
+      .btn.play{background:var(--dj-green);color:#000;border-color:var(--dj-green);font-weight:700}
+      .btn.play:hover{opacity:0.85}
+      .btn-pink.play{background:var(--dj-pink);border-color:var(--dj-pink)}
+      .knob-row{display:flex;gap:12px;justify-content:center}
+      .knob-wrap{display:flex;flex-direction:column;align-items:center;gap:4px}
+      .knob-wrap label{font-size:10px;color:var(--dj-muted);letter-spacing:1px}
+      .knob{width:42px;height:42px;border-radius:50%;background:conic-gradient(var(--dj-cyan) 0% 60%, #2a2a40 60% 100%);border:2px solid var(--dj-border);cursor:pointer;position:relative}
+      .deck-b .knob{background:conic-gradient(var(--dj-pink) 0% 60%, #2a2a40 60% 100%)}
+      .knob-val{font-size:10px;color:var(--dj-muted)}
+      .mixer{background:var(--dj-card);border:1px solid var(--dj-border);border-radius:15px;padding:18px;flex-shrink:0}
+      .mixer-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--dj-amber);text-align:center;margin-bottom:14px}
+      .mixer-inner{display:flex;align-items:flex-end;gap:20px;justify-content:center}
+      .fader-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+      .fader-wrap label{font-size:11px;color:var(--dj-muted);letter-spacing:1px}
+      input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;background:#2a2a40;outline:none;cursor:pointer}
+      input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--dj-amber);border:2px solid #0a0a0f;cursor:pointer}
+      .crossfader{width:240px}
+      .vol-fader{writing-mode:vertical-lr;direction:rtl;width:5px;height:100px}
+      .vol-fader::-webkit-slider-thumb{background:var(--dj-cyan)}
+      .vol-b::-webkit-slider-thumb{background:var(--dj-pink)!important}
+      .eq-section{display:flex;gap:15px;justify-content:center;margin-top:15px}
+      .eq-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+      .eq-col label{font-size:10px;color:var(--dj-muted)}
+      .eq-fader{writing-mode:vertical-lr;direction:rtl;height:70px;width:5px}
+      .eq-fader::-webkit-slider-thumb{background:var(--dj-amber);width:14px;height:14px}
+      
+      .right-col{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+        overflow-y:auto;
+      }
+      
+      .viz-section{background:var(--dj-card);border:1px solid var(--dj-border);border-radius:15px;padding:15px;flex-shrink:0}
+      .viz-label{font-size:11px;color:var(--dj-muted);letter-spacing:2px;margin-bottom:10px;text-align:center}
+      .bpm-row{display:flex;justify-content:space-around;margin-bottom:15px}
+      .bpm-box{text-align:center;background:var(--dj-surface);border-radius:10px;padding:10px 20px;border:1px solid var(--dj-border)}
+      .bpm-val{font-family:'Orbitron',monospace;font-size:26px;font-weight:700}
+      .bpm-a{color:var(--dj-cyan)}
+      .bpm-b{color:var(--dj-pink)}
+      .bpm-lbl{font-size:10px;color:var(--dj-muted);letter-spacing:1px}
+      
+      .effects-panel{background:var(--dj-card);border:1px solid var(--dj-border);border-radius:15px;padding:15px;flex-shrink:0}
+      .effects-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--dj-amber);text-align:center;margin-bottom:12px}
+      .effects-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+      .btn-fx{background:var(--dj-surface);border:1px solid var(--dj-border);color:var(--dj-muted);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:11px;letter-spacing:1px;transition:all 0.2s}
+      .btn-fx.active{border-color:var(--dj-amber);color:var(--dj-amber);background:#ffaa0015}
+      
+      .yt-panel{background:var(--dj-card);border:1px solid var(--dj-border);border-radius:15px;padding:15px;flex-shrink:0}
+      .yt-title{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:2px;color:#FF0000;text-align:center;margin-bottom:12px}
+      .yt-search-row{display:flex;gap:10px;margin-bottom:15px}
+      .yt-search-input{flex:1;background:var(--dj-surface);border:1px solid var(--dj-border);color:var(--dj-text);border-radius:8px;padding:10px 12px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
+      .yt-search-input:focus{border-color:#FF0000}
+      .btn-yt-search{background:#FF0000;color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+      .results-list{max-height:300px;overflow-y:auto;margin-top:10px}
+      .result-item{background:var(--dj-surface);border:1px solid var(--dj-border);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;gap:12px}
+      .result-item:hover{background:var(--dj-card);border-color:#FF0000}
+      .result-thumb{width:80px;height:60px;border-radius:6px;object-fit:cover}
+      .result-info{flex:1}
+      .result-title{font-size:12px;font-weight:700;color:var(--dj-text);margin-bottom:4px}
+      .result-channel{font-size:10px;color:var(--dj-muted)}
+      .load-buttons{display:flex;gap:8px;margin-top:8px}
+      .btn-load-yt{background:transparent;border:1px solid #FF0000;color:#FF0000;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:10px}
+      
+      .floating-btn{
+        position:fixed;
+        bottom:20px;
+        right:20px;
+        z-index:1000;
+      }
+      .quick-toggle{
+        background:linear-gradient(135deg, var(--dj-cyan), var(--dj-pink));
+        color:#000;
+        border:none;
+        border-radius:50px;
+        padding:14px 28px;
+        cursor:pointer;
+        font-family:'Orbitron',monospace;
+        font-size:13px;
+        font-weight:700;
+        letter-spacing:2px;
+        box-shadow:0 4px 15px rgba(0,0,0,0.3);
+        transition:transform 0.2s;
+      }
+      .quick-toggle:hover{
+        transform:scale(1.05);
+      }
+      
+      .quick-panel{
+        position:fixed;
+        bottom:85px;
+        right:20px;
+        width:400px;
+        background:var(--dj-card);
+        border:2px solid var(--dj-cyan);
+        border-radius:15px;
+        padding:18px;
+        display:none;
+        z-index:999;
+        box-shadow:0 8px 25px rgba(0,0,0,0.5);
+      }
+      .quick-panel.show{
+        display:block;
+      }
+      .quick-panel .links-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--dj-text);text-align:center;margin-bottom:12px}
+      .quick-panel .link-row{display:flex;gap:10px;margin-bottom:10px}
+      .quick-panel .link-input{flex:1;background:var(--dj-surface);border:1px solid var(--dj-border);color:var(--dj-text);border-radius:8px;padding:10px;font-family:'Share Tech Mono',monospace;font-size:12px;outline:none}
+      .quick-panel .link-input:focus{border-color:var(--dj-cyan)}
+      
+      .waveform-wrap{position:relative;height:45px;background:var(--dj-surface);border-radius:8px;overflow:hidden;margin-bottom:10px}
+      canvas#viz-canvas{width:100%;height:55px;border-radius:8px;background:var(--dj-surface)}
+      
+      ::-webkit-scrollbar{width:8px}
+      ::-webkit-scrollbar-track{background:var(--dj-surface);border-radius:4px}
+      ::-webkit-scrollbar-thumb{background:var(--dj-border);border-radius:4px}
+      ::-webkit-scrollbar-thumb:hover{background:var(--dj-cyan)}
+      
+      .youtube-players{
+        position:fixed;
+        bottom:-100px;
+        left:-100px;
+        width:1px;
+        height:1px;
+        opacity:0;
+        pointer-events:none;
+      }
+      .status-bar {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 10px;
+        color: #00ff88;
+        z-index: 1000;
+      }
+    </style>
 </head>
-
 <body>
+<div class="dj-app">
+  <div class="header">
+    <h1>DJCLAUDE PRO</h1>
+    <p>YOUTUBE INTEGRATION • PROFESSIONAL DJ CONTROLLER</p>
+  </div>
 
-<div class="container">
+  <div class="main-layout">
+    <div class="left-col">
+      <div class="decks">
+        <div class="deck deck-a">
+          <div class="deck-label">DECK A</div>
+          <div class="vinyl-wrap">
+            <div class="vinyl" id="vinyl-a" onclick="togglePlay('a')">
+              <canvas id="canvas-a" width="130" height="130"></canvas>
+            </div>
+          </div>
+          <div class="track-info">
+            <div class="track-title" id="title-a">NO TRACK LOADED</div>
+            <div class="track-artist" id="artist-a">— —</div>
+          </div>
+          <div class="waveform-wrap"><canvas id="wave-a" width="300" height="45" style="width:100%;height:45px"></canvas></div>
+          <div class="progress-bar" onclick="seekDeck('a',event)">
+            <div class="progress-fill" id="prog-a" style="width:0%"></div>
+          </div>
+          <div class="time-row"><span id="cur-a">0:00</span><span id="rem-a">-0:00</span></div>
+          <div class="deck-controls">
+            <button class="btn" onclick="prevTrack('a')">|◀</button>
+            <button class="btn" onclick="cuePoint('a')">CUE</button>
+            <button class="btn play" id="play-a" onclick="togglePlay('a')">▶ PLAY</button>
+            <button class="btn" onclick="nextTrack('a')">▶|</button>
+          </div>
+          <div class="knob-row">
+            <div class="knob-wrap"><div class="knob" id="knob-tempo-a" onclick="adjustTempo('a',1)"></div><label>TEMPO</label><span class="knob-val" id="tempo-val-a">0%</span></div>
+            <div class="knob-wrap"><div class="knob" onclick="adjustFilter('a')"></div><label>FILTER</label><span class="knob-val">50%</span></div>
+            <div class="knob-wrap"><div class="knob" onclick="adjustGain('a')"></div><label>GAIN</label><span class="knob-val">75%</span></div>
+          </div>
+        </div>
 
-    <div class="side" id="leftSide"></div>
+        <div class="deck deck-b">
+          <div class="deck-label">DECK B</div>
+          <div class="vinyl-wrap">
+            <div class="vinyl" id="vinyl-b" onclick="togglePlay('b')">
+              <canvas id="canvas-b" width="130" height="130"></canvas>
+            </div>
+          </div>
+          <div class="track-info">
+            <div class="track-title" id="title-b">NO TRACK LOADED</div>
+            <div class="track-artist" id="artist-b">— —</div>
+          </div>
+          <div class="waveform-wrap"><canvas id="wave-b" width="300" height="45" style="width:100%;height:45px"></canvas></div>
+          <div class="progress-bar" onclick="seekDeck('b',event)">
+            <div class="progress-fill" id="prog-b" style="width:0%"></div>
+          </div>
+          <div class="time-row"><span id="cur-b">0:00</span><span id="rem-b">-0:00</span></div>
+          <div class="deck-controls">
+            <button class="btn" onclick="prevTrack('b')">|◀</button>
+            <button class="btn" onclick="cuePoint('b')">CUE</button>
+            <button class="btn play btn-pink" id="play-b" onclick="togglePlay('b')">▶ PLAY</button>
+            <button class="btn" onclick="nextTrack('b')">▶|</button>
+          </div>
+          <div class="knob-row">
+            <div class="knob-wrap"><div class="knob" id="knob-tempo-b" onclick="adjustTempo('b',1)"></div><label>TEMPO</label><span class="knob-val" id="tempo-val-b">0%</span></div>
+            <div class="knob-wrap"><div class="knob" onclick="adjustFilter('b')"></div><label>FILTER</label><span class="knob-val">50%</span></div>
+            <div class="knob-wrap"><div class="knob" onclick="adjustGain('b')"></div><label>GAIN</label><span class="knob-val">75%</span></div>
+          </div>
+        </div>
+      </div>
 
-    <div class="main">
-
-        <!-- TAPA LO VERDE -->
-        <div class="top-overlay"></div>
-
-        <!-- TITULO -->
-        <div class="dj-name" id="djName">DJ LENGUA</div>
-
-       <iframe width="560" height="315" src="https://www.youtube.com/embed/WJHsCInGHCs?si=mCV4OGt3aV0zsU0P" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-
+      <div class="mixer">
+        <div class="mixer-title">MIXER</div>
+        <div class="mixer-inner">
+          <div class="fader-wrap">
+            <label>VOL A</label>
+            <input type="range" class="vol-fader" min="0" max="100" value="80" oninput="setVol('a',this.value)">
+            <span style="font-size:11px;color:var(--dj-cyan)" id="vol-a-val">80</span>
+          </div>
+          <div style="flex:1">
+            <div style="text-align:center;font-size:11px;color:var(--dj-muted);margin-bottom:8px;letter-spacing:1px">CROSSFADER</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:12px;color:var(--dj-cyan)">A</span>
+              <input type="range" class="crossfader" min="0" max="100" value="50" oninput="crossfade(this.value)">
+              <span style="font-size:12px;color:var(--dj-pink)">B</span>
+            </div>
+            <div class="eq-section">
+              <div class="eq-col"><label>HI</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-muted)">A</span></div>
+              <div class="eq-col"><label>MID</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-muted)">A</span></div>
+              <div class="eq-col"><label>LOW</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-muted)">A</span></div>
+              <div style="width:1px;background:var(--dj-border);margin:0 8px"></div>
+              <div class="eq-col"><label>HI</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-pink)">B</span></div>
+              <div class="eq-col"><label>MID</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-pink)">B</span></div>
+              <div class="eq-col"><label>LOW</label><input type="range" class="eq-fader" min="0" max="100" value="75"><span style="font-size:10px;color:var(--dj-pink)">B</span></div>
+            </div>
+          </div>
+          <div class="fader-wrap">
+            <label>VOL B</label>
+            <input type="range" class="vol-fader vol-b" min="0" max="100" value="80" oninput="setVol('b',this.value)">
+            <span style="font-size:11px;color:var(--dj-pink)" id="vol-b-val">80</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="side" id="rightSide"></div>
+    <div class="right-col">
+      <div class="viz-section">
+        <div class="viz-label">BPM SYNC</div>
+        <div class="bpm-row">
+          <div class="bpm-box"><div class="bpm-val bpm-a" id="bpm-a">128</div><div class="bpm-lbl">DECK A</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <button class="btn" style="font-size:12px;padding:8px 15px;border-color:var(--dj-amber);color:var(--dj-amber)" onclick="syncBPM()">SYNC</button>
+            <button class="btn" style="font-size:11px;padding:5px 12px" onclick="tapTempo()">TAP</button>
+          </div>
+          <div class="bpm-box"><div class="bpm-val bpm-b" id="bpm-b">132</div><div class="bpm-lbl">DECK B</div></div>
+        </div>
+        <canvas id="viz-canvas" width="700" height="55" style="width:100%;height:55px;border-radius:8px;background:var(--dj-surface)"></canvas>
+      </div>
 
+      <div class="effects-panel">
+        <div class="effects-title">EFECTOS</div>
+        <div class="effects-row">
+          <button class="btn-fx" onclick="toggleFx(this)">ECHO</button>
+          <button class="btn-fx" onclick="toggleFx(this)">FLANGER</button>
+          <button class="btn-fx" onclick="toggleFx(this)">REVERB</button>
+          <button class="btn-fx" onclick="toggleFx(this)">FILTER</button>
+          <button class="btn-fx" onclick="toggleFx(this)">LOOP x2</button>
+          <button class="btn-fx" onclick="toggleFx(this)">LOOP x4</button>
+          <button class="btn-fx" onclick="toggleFx(this)">SCRATCH</button>
+        </div>
+      </div>
+
+      <div class="yt-panel">
+        <div class="yt-title">🎵 YOUTUBE MUSIC</div>
+        <div class="yt-search-row">
+          <input type="text" class="yt-search-input" id="yt-search" placeholder="Buscar canción, artista o playlist..." onkeypress="if(event.key==='Enter') searchYouTube()">
+          <button class="btn-yt-search" onclick="searchYouTube()">BUSCAR</button>
+        </div>
+        <div id="yt-results" class="results-list">
+          <div style="text-align:center;color:var(--dj-muted);padding:20px">Busca canciones para cargar en los decks</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<div class="floating-btn">
+  <button class="quick-toggle" onclick="toggleQuickPanel()">⚡ CARGA RÁPIDA</button>
+</div>
+<div class="quick-panel" id="quickPanel">
+  <div class="links-title">CARGAR TRACK RÁPIDO</div>
+  <div class="link-row">
+    <input type="text" class="link-input" id="track-name-a" placeholder="Nombre para Deck A..." />
+    <button class="btn" style="border-color:var(--dj-cyan);color:var(--dj-cyan)" onclick="loadTrack('a')">LOAD A</button>
+  </div>
+  <div class="link-row">
+    <input type="text" class="link-input" id="track-name-b" placeholder="Nombre para Deck B..." />
+    <button class="btn" style="border-color:var(--dj-pink);color:var(--dj-pink)" onclick="loadTrack('b')">LOAD B</button>
+  </div>
+</div>
+
+<div class="youtube-players">
+  <div id="yt-player-a"></div>
+  <div id="yt-player-b"></div>
+</div>
+
+<div class="status-bar" id="status-bar">🎧 Inicializando...</div>
+
 <script>
+let playerA = null;
+let playerB = null;
+let apiReady = false;
+let pendingCalls = [];
 
-// EDITAR NOMBRE
-const djName = document.getElementById("djName");
+function updateStatus(msg) {
+  const statusDiv = document.getElementById('status-bar');
+  if(statusDiv) statusDiv.textContent = msg;
+  console.log(msg);
+}
 
-djName.addEventListener("dblclick", () => {
-    const nuevo = prompt("Nuevo nombre DJ:");
-    if (nuevo) djName.innerText = nuevo.toUpperCase();
+window.onYouTubeIframeAPIReady = function() {
+  apiReady = true;
+  updateStatus('✅ YouTube API lista');
+  pendingCalls.forEach(cb => cb());
+  pendingCalls = [];
+};
+
+function loadYouTubeAPI() {
+  if(document.querySelector('script[src*="youtube.com/iframe_api"]')) return;
+  updateStatus('📡 Cargando YouTube API...');
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
+
+const state = {
+  a: { playing: false, progress: 0, duration: 0, bpm: 128, tempo: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null },
+  b: { playing: false, progress: 0, duration: 0, bpm: 132, tempo: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
+};
+
+let vinylAngleA = 0, vinylAngleB = 0, animId;
+let tapTimes = [];
+
+function loadToDeck(deck, videoId, title, channel) {
+  updateStatus(`🎵 Cargando "${title.substring(0, 30)}" en Deck ${deck.toUpperCase()}...`);
+  
+  const loadFn = () => {
+    try {
+      // Destruir player existente si hay
+      if(deck === 'a' && playerA) {
+        playerA.destroy();
+        playerA = null;
+      }
+      if(deck === 'b' && playerB) {
+        playerB.destroy();
+        playerB = null;
+      }
+      
+      state[deck].title = title.substring(0, 30);
+      state[deck].artist = channel;
+      state[deck].videoId = videoId;
+      state[deck].progress = 0;
+      updateUI(deck);
+      
+      const playerElement = `yt-player-${deck}`;
+      
+      const player = new YT.Player(playerElement, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,  // Auto reproducir
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          playsinline: 1,
+          origin: window.location.origin
+        },
+        events: {
+          onReady: (event) => {
+            updateStatus(`✅ "${title.substring(0, 30)}" cargado en Deck ${deck.toUpperCase()}`);
+            state[deck].duration = event.target.getDuration();
+            event.target.setVolume(state[deck].vol);
+            updateUI(deck);
+            
+            // Auto-play
+            setTimeout(() => {
+              event.target.playVideo();
+            }, 500);
+          },
+          onStateChange: (event) => {
+            if(event.data === YT.PlayerState.PLAYING) {
+              state[deck].playing = true;
+              document.getElementById(`play-${deck}`).textContent = '⏸ PAUSE';
+              updateStatus(`🎧 Reproduciendo en Deck ${deck.toUpperCase()}`);
+            } else if(event.data === YT.PlayerState.PAUSED) {
+              state[deck].playing = false;
+              document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
+            } else if(event.data === YT.PlayerState.ENDED) {
+              state[deck].playing = false;
+              document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
+            }
+          },
+          onError: (event) => {
+            console.error('Error en player:', event);
+            let errorMsg = 'Error desconocido';
+            if(event.data === 2) errorMsg = 'ID de video inválido';
+            else if(event.data === 5) errorMsg = 'Error de reproducción (contenido no disponible)';
+            else if(event.data === 100) errorMsg = 'Video no encontrado';
+            else if(event.data === 101) errorMsg = 'API Key inválida o restringida';
+            else if(event.data === 150) errorMsg = 'Video restringido';
+            updateStatus(`❌ Error en Deck ${deck.toUpperCase()}: ${errorMsg}`);
+          }
+        }
+      });
+      
+      if(deck === 'a') playerA = player;
+      else playerB = player;
+      
+    } catch(e) {
+      console.error('Error al crear player:', e);
+      updateStatus(`❌ Error al cargar en Deck ${deck.toUpperCase()}: ${e.message}`);
+    }
+  };
+  
+  if(apiReady) loadFn();
+  else pendingCalls.push(loadFn);
+}
+
+function updateProgress() {
+  try {
+    if(playerA && state.a.playing && playerA.getCurrentTime) {
+      state.a.progress = playerA.getCurrentTime();
+      state.a.duration = playerA.getDuration();
+    }
+    if(playerB && state.b.playing && playerB.getCurrentTime) {
+      state.b.progress = playerB.getCurrentTime();
+      state.b.duration = playerB.getDuration();
+    }
+  } catch(e) {}
+}
+
+async function searchYouTube() {
+  const query = document.getElementById('yt-search').value.trim();
+  if(!query) return;
+  
+  const resultsDiv = document.getElementById('yt-results');
+  resultsDiv.innerHTML = '<div style="text-align:center;color:var(--dj-muted);padding:20px">Buscando...</div>';
+  
+  // ⚠️ IMPORTANTE: REEMPLAZA CON TU PROPIA API KEY DE YOUTUBE ⚠️
+  // Ve a: https://console.cloud.google.com/ → APIs y Servicios → Credenciales
+  const API_KEY = 'AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
+  
+  try {
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`);
+    const data = await response.json();
+    
+    if(data.error) {
+      resultsDiv.innerHTML = `<div style="text-align:center;color:var(--dj-muted);padding:20px">Error de API: ${data.error.message}<br>Necesitas tu propia API Key de YouTube</div>`;
+      updateStatus('❌ API Key inválida. Obtén tu propia clave en Google Cloud Console');
+      return;
+    }
+    
+    if(data.items && data.items.length > 0) {
+      resultsDiv.innerHTML = '';
+      data.items.forEach(video => {
+        const videoId = video.id.videoId;
+        const title = video.snippet.title;
+        const channel = video.snippet.channelTitle;
+        const thumbUrl = video.snippet.thumbnails.medium.url;
+        
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'result-item';
+        resultDiv.innerHTML = `
+          <img class="result-thumb" src="${thumbUrl}" alt="thumbnail">
+          <div class="result-info">
+            <div class="result-title">${escapeHtml(title.substring(0, 50))}</div>
+            <div class="result-channel">${escapeHtml(channel)}</div>
+            <div class="load-buttons">
+              <button class="btn-load-yt" onclick="loadToDeck('a', '${videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}')">🎧 Cargar en A</button>
+              <button class="btn-load-yt" onclick="loadToDeck('b', '${videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}')">🎧 Cargar en B</button>
+            </div>
+          </div>
+        `;
+        resultsDiv.appendChild(resultDiv);
+      });
+      updateStatus(`✅ Encontrados ${data.items.length} resultados`);
+    } else {
+      resultsDiv.innerHTML = '<div style="text-align:center;color:var(--dj-muted);padding:20px">No se encontraron resultados</div>';
+    }
+  } catch(e) {
+    console.error('Error:', e);
+    resultsDiv.innerHTML = '<div style="text-align:center;color:var(--dj-muted);padding:20px">Error en la búsqueda. Verifica tu conexión.</div>';
+    updateStatus('❌ Error de red al buscar');
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>']/g, function(m) {
+    if(m === '&') return '&amp;';
+    if(m === '<') return '&lt;';
+    if(m === '>') return '&gt;';
+    if(m === "'") return '&#39;';
+    return m;
+  });
+}
+
+function drawVinyl(id, angle, color, playing) {
+  const c = document.getElementById('canvas-'+id);
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const cx = 65, cy = 65, r = 62;
+  ctx.clearRect(0,0,130,130);
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  for(let i=10;i<r-4;i+=6){
+    ctx.beginPath();
+    ctx.arc(0,0,i,0,Math.PI*2);
+    ctx.strokeStyle = i%12===3?color+'30':'#2a2a4050';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  const grad = ctx.createLinearGradient(-r,-r,r,r);
+  grad.addColorStop(0,color+'60');
+  grad.addColorStop(1,'transparent');
+  ctx.beginPath();
+  ctx.arc(0,0,r,0,Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0,0,18,0,Math.PI*2);
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0,0,6,0,Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+  if(playing){
+    ctx.save();
+    ctx.translate(cx,cy);
+    const glow = ctx.createRadialGradient(0,0,45,0,0,62);
+    glow.addColorStop(0,'transparent');
+    glow.addColorStop(1,color+'40');
+    ctx.beginPath();
+    ctx.arc(0,0,62,0,Math.PI*2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawWaveform(id, color) {
+  const c = document.getElementById('wave-'+id);
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  ctx.clearRect(0,0,w,h);
+  for(let x=0;x<w;x+=3){
+    const amp = (Math.sin(x*0.05)+Math.sin(x*0.13)+Math.sin(x*0.031))/3;
+    const barH = Math.abs(amp)*(h*0.5-4)+4;
+    ctx.fillStyle = color+'80';
+    ctx.fillRect(x,h/2-barH,2,barH*2);
+  }
+}
+
+function drawViz() {
+  const c = document.getElementById('viz-canvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  const w = c.width, h = c.height;
+  ctx.clearRect(0,0,w,h);
+  const t = Date.now()/1000;
+  const bars = 70;
+  for(let i=0;i<bars;i++){
+    const half = i < bars/2;
+    const color = half ? '#00d4ff' : '#ff2d78';
+    const amp = (Math.sin(t*(state[half?'a':'b'].bpm/60)+i*0.4)+1)/2;
+    const barH = amp*(h-10)+5;
+    ctx.fillStyle = color+'cc';
+    ctx.fillRect(i*(w/bars), h-barH, (w/bars)-1, barH);
+  }
+}
+
+function fmtTime(s){ 
+  if(isNaN(s) || !isFinite(s)) s = 0;
+  return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60); 
+}
+
+function updateUI(id) {
+  const s = state[id];
+  const pct = s.duration > 0 ? (s.progress/s.duration)*100 : 0;
+  const progEl = document.getElementById('prog-'+id);
+  const curEl = document.getElementById('cur-'+id);
+  const remEl = document.getElementById('rem-'+id);
+  const titleEl = document.getElementById('title-'+id);
+  const artistEl = document.getElementById('artist-'+id);
+  const bpmEl = document.getElementById('bpm-'+id);
+  const tempoValEl = document.getElementById('tempo-val-'+id);
+  if(progEl) progEl.style.width = Math.min(100, pct)+'%';
+  if(curEl) curEl.textContent = fmtTime(s.progress);
+  if(remEl) remEl.textContent = '-'+fmtTime(s.duration - s.progress);
+  if(titleEl) titleEl.textContent = s.title;
+  if(artistEl) artistEl.textContent = s.artist;
+  if(bpmEl) bpmEl.textContent = s.bpm;
+  if(tempoValEl) tempoValEl.textContent = (s.tempo>0?'+':'')+s.tempo+'%';
+}
+
+function loop() {
+  updateProgress();
+  
+  if(state.a.playing) vinylAngleA += 0.03;
+  if(state.b.playing) vinylAngleB += 0.03;
+  
+  drawVinyl('a', vinylAngleA, '#00d4ff', state.a.playing);
+  drawVinyl('b', vinylAngleB, '#ff2d78', state.b.playing);
+  drawViz();
+  updateUI('a');
+  updateUI('b');
+  animId = requestAnimationFrame(loop);
+}
+
+function togglePlay(id) {
+  const player = id === 'a' ? playerA : playerB;
+  if(!player || !player.getPlayerState) {
+    updateStatus(`⚠️ Deck ${id.toUpperCase()}: No hay canción cargada`);
+    return;
+  }
+  
+  try {
+    const state = player.getPlayerState();
+    if(state === 1) { // PLAYING
+      player.pauseVideo();
+    } else {
+      player.playVideo();
+    }
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function seekDeck(id, e){
+  const bar = e.currentTarget;
+  const pct = e.offsetX/bar.offsetWidth;
+  const player = id === 'a' ? playerA : playerB;
+  if(player && player.seekTo && state[id].duration) {
+    player.seekTo(pct * state[id].duration, true);
+  }
+}
+
+function adjustTempo(id, delta) {
+  state[id].tempo = Math.max(-10, Math.min(10, state[id].tempo+delta));
+  state[id].bpm = Math.round((id==='a'?128:132)*(1+state[id].tempo/100));
+}
+
+function syncBPM() {
+  const mid = Math.round((state.a.bpm+state.b.bpm)/2);
+  state.a.bpm = mid; state.b.bpm = mid;
+}
+
+function tapTempo() {
+  const now = Date.now();
+  tapTimes.push(now);
+  if(tapTimes.length>1){
+    const diffs = tapTimes.slice(1).map((t,i)=>t-tapTimes[i]);
+    const avg = diffs.reduce((a,b)=>a+b)/diffs.length;
+    state.a.bpm = Math.round(60000/avg);
+  }
+  if(tapTimes.length>8) tapTimes = tapTimes.slice(-4);
+}
+
+function setVol(id, v) { 
+  state[id].vol = v; 
+  const player = id === 'a' ? playerA : playerB;
+  if(player && player.setVolume) player.setVolume(v);
+  document.getElementById('vol-'+id+'-val').textContent = v; 
+}
+
+function crossfade(v){ 
+  const volA = Math.max(0, Math.min(100, 100 - v));
+  const volB = Math.max(0, Math.min(100, v));
+  if(playerA && playerA.setVolume) playerA.setVolume((state.a.vol/100) * volA);
+  if(playerB && playerB.setVolume) playerB.setVolume((state.b.vol/100) * volB);
+}
+
+function adjustFilter(id){}
+function adjustGain(id){}
+function toggleFx(btn){ btn.classList.toggle('active'); }
+function prevTrack(id){ 
+  const player = id === 'a' ? playerA : playerB;
+  if(player && player.seekTo) player.seekTo(0, true); 
+}
+function nextTrack(id){ 
+  const player = id === 'a' ? playerA : playerB;
+  if(player && player.seekTo) player.seekTo(0, true); 
+}
+function cuePoint(id){ 
+  const player = id === 'a' ? playerA : playerB;
+  if(player && player.seekTo) player.seekTo(0, true); 
+}
+
+function loadTrack(id) {
+  const inp = document.getElementById('track-name-'+id).value.trim();
+  if(!inp) return;
+  const parts = inp.split('-');
+  state[id].title = (parts[0]||inp).trim().toUpperCase().substring(0,30);
+  state[id].artist = (parts[1]||'MANUAL TRACK').trim().toUpperCase();
+  state[id].duration = 180;
+  state[id].progress = 0;
+  updateUI(id);
+  updateStatus(`📀 Track manual cargado en Deck ${id.toUpperCase()}`);
+}
+
+function toggleQuickPanel() {
+  const panel = document.getElementById('quickPanel');
+  panel.classList.toggle('show');
+}
+
+document.addEventListener('click', function(event) {
+  const panel = document.getElementById('quickPanel');
+  const btn = document.querySelector('.quick-toggle');
+  if(panel && btn && !btn.contains(event.target) && !panel.contains(event.target)) {
+    panel.classList.remove('show');
+  }
 });
 
-// LUCES
-function crearLuz(container) {
-    const light = document.createElement("div");
-    light.className = "light";
-    light.style.left = Math.random() * 100 + "%";
-    light.style.animationDuration = (4 + Math.random() * 4) + "s";
-    container.appendChild(light);
-
-    setTimeout(() => light.remove(), 8000);
-}
+drawWaveform('a','#00d4ff');
+drawWaveform('b','#ff2d78');
+loadYouTubeAPI();
+loop();
 
 setInterval(() => {
-    crearLuz(document.getElementById("leftSide"));
-    crearLuz(document.getElementById("rightSide"));
-}, 500);
-
-// PARTICULAS
-const emojis = ["✨", "🎶", "🥃"];
-
-function crearParticula() {
-    const p = document.createElement("div");
-    p.className = "particle";
-    p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-    p.style.left = Math.random() * 100 + "%";
-    p.style.animationDuration = (5 + Math.random() * 5) + "s";
-    document.body.appendChild(p);
-
-    setTimeout(() => p.remove(), 10000);
-}
-
-setInterval(crearParticula, 900);
-
+  const crossVal = document.querySelector('.crossfader')?.value || 50;
+  crossfade(crossVal);
+}, 100);
 </script>
-
 </body>
 </html>

@@ -1034,7 +1034,7 @@ function startFiestaEffects() {
         const makeImg = () => {
             if(!fiestaActive) return;
             const randomNum = Math.floor(Math.random()*10)+1;
-            const imgUrl = `imagenes/${randomNum}.png`;
+            const imgUrl = `${randomNum}.png`;
             const img = new Image();
             img.onload = () => {
                 const imgDiv = document.createElement('img');

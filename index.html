@@ -33,14 +33,23 @@
           overflow: hidden;
           position: relative;
       }
+      /* Reproductor de fondo sincronizado (visible pero detrás) */
       .sync-player {
           position: fixed;
           top: 0;
           left: 0;
-          width: 1px;
-          height: 1px;
-          opacity: 0;
+          width: 100%;
+          height: 100%;
+          z-index: -3;
           pointer-events: none;
+      }
+      .sync-player iframe {
+          width: 100%;
+          height: 100%;
+          border: 0;
+          object-fit: cover;
+          filter: blur(8px) brightness(0.6);
+          opacity: 0.8;
       }
       .background-overlay {
           position: fixed;
@@ -353,7 +362,7 @@
       .btn.play { background: var(--dj-green); color: #000; border-color: var(--dj-green); font-weight: 700; }
       .btn-pink.play { background: var(--dj-pink); border-color: var(--dj-pink); }
       
-      /* MASTER MIXER - SIN ESPACIOS SOBRANTES, OCUPANDO TODO EL ANCHO */
+      /* MASTER MIXER COMPACTO */
       .mixer {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
@@ -376,19 +385,17 @@
           flex-direction: row;
           justify-content: space-between;
           align-items: stretch;
-          gap: 6px;  /* espacio mínimo entre grupos */
+          gap: 6px;
           width: 100%;
       }
-      /* Cada grupo ocupa el mismo ancho */
       .vol-group, .crossfader-group, .eqs-group {
           flex: 1;
           background: rgba(18,18,26,0.5);
           border-radius: 8px;
           padding: 4px 6px;
           text-align: center;
-          min-width: 0; /* permite que se reduzcan */
+          min-width: 0;
       }
-      /* Volúmenes internos en fila */
       .vol-group {
           display: flex;
           justify-content: space-around;
@@ -427,7 +434,6 @@
           padding: 1px 3px;
           border-radius: 8px;
       }
-      /* Crossfader */
       .crossfader-group label {
           font-size: 8px;
           display: block;
@@ -454,7 +460,6 @@
           margin-top: 2px;
           padding: 0 2px;
       }
-      /* EQ grupos */
       .eqs-group {
           display: flex;
           gap: 6px;
@@ -734,7 +739,6 @@
           color: var(--dj-amber);
           z-index: 1000;
       }
-      /* Responsive: si la pantalla es demasiado pequeña, que se envuelva pero sin perder la distribución */
       @media (max-width: 1000px) {
           .mixer-row { flex-wrap: wrap; gap: 5px; }
           .vol-group, .crossfader-group, .eqs-group { flex: 1 1 auto; min-width: 120px; }
@@ -817,7 +821,6 @@
         </div>
       </div>
 
-      <!-- MASTER MIXER - OCUPA TODO EL ANCHO SIN ESPACIOS -->
       <div class="mixer">
         <div class="mixer-title">🎛️ MASTER MIXER 🎛️</div>
         <div class="mixer-row">
@@ -908,7 +911,7 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// ---------- EFECTOS DE CUMPLEAÑOS CON NOMBRE CAYENDO ----------
+// ---------- EFECTOS DE CUMPLEAÑOS (con intensidad regulable) ----------
 let fiestaActive = false;
 let intensity = 30;
 let flashInterval = null;
@@ -925,12 +928,12 @@ function updateStrobe() {
     const { interval, opacity } = getStrobeParams(intensity);
     if(interval===Infinity || opacity===0) return;
     const strobeDiv = document.getElementById('strobe');
-    let state = false;
+    let stateStrobe = false;
     flashInterval = setInterval(()=>{
         if(!fiestaActive) return;
-        if(state) strobeDiv.style.opacity = '0';
+        if(stateStrobe) strobeDiv.style.opacity = '0';
         else strobeDiv.style.opacity = opacity;
-        state = !state;
+        stateStrobe = !stateStrobe;
     }, interval);
 }
 function getDelayFromIntensity(baseDelay) {
@@ -1063,40 +1066,71 @@ intensitySlider.addEventListener('input', (e)=>{
     }
 });
 
-// ---------- SINCRONIZACIÓN DE FONDO ----------
+// ---------- SINCRONIZACIÓN DE FONDO (CORREGIDA, visible) ----------
 function initSyncPlayer() {
     const container = document.getElementById('syncPlayer');
     container.innerHTML = '';
     if(syncPlayer) try{ syncPlayer.destroy(); }catch(e){}
     syncPlayer = new YT.Player('syncPlayer', {
-        height:'1', width:'1',
-        playerVars:{ autoplay:0, controls:0, modestbranding:1, playsinline:1 }
+        height: '100%',
+        width: '100%',
+        playerVars: {
+            autoplay: 1,
+            mute: 1,
+            controls: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            disablekb: 1
+        },
+        events: {
+            onReady: () => {
+                console.log('Sync player listo');
+                if (currentPlayingDeck && state[currentPlayingDeck].playing) {
+                    syncBackgroundWithDeck(currentPlayingDeck);
+                }
+            }
+        }
     });
 }
 function syncBackgroundWithDeck(deckId) {
-    if(!syncPlayer||!apiReady) return;
-    const mainPlayer = (deckId==='a')?playerA:playerB;
-    if(!mainPlayer) return;
+    if (!syncPlayer || !apiReady) return;
+    const mainPlayer = (deckId === 'a') ? playerA : playerB;
+    if (!mainPlayer) return;
     const videoId = state[deckId].videoId;
-    if(!videoId) return;
-    if(currentBgVideoId !== videoId){
+    if (!videoId) return;
+    
+    if (currentBgVideoId !== videoId) {
         currentBgVideoId = videoId;
-        syncPlayer.loadVideoById(videoId);
+        syncPlayer.loadVideoById({
+            videoId: videoId,
+            startSeconds: mainPlayer.getCurrentTime() || 0
+        });
+        setTimeout(() => {
+            if (syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo();
+            if (syncPlayer && syncPlayer.setVolume) syncPlayer.setVolume(0);
+        }, 100);
+    } else {
+        try {
+            const mainTime = mainPlayer.getCurrentTime();
+            const mainState = mainPlayer.getPlayerState();
+            const syncTime = syncPlayer.getCurrentTime();
+            if (Math.abs(mainTime - syncTime) > 0.3) {
+                syncPlayer.seekTo(mainTime, true);
+            }
+            if (mainState === 1 && syncPlayer.getPlayerState() !== 1) {
+                syncPlayer.playVideo();
+            } else if (mainState !== 1 && syncPlayer.getPlayerState() === 1) {
+                syncPlayer.pauseVideo();
+            }
+            syncPlayer.setVolume(0);
+        } catch(e) { console.warn(e); }
     }
-    try{
-        const mainTime = mainPlayer.getCurrentTime();
-        const mainState = mainPlayer.getPlayerState();
-        syncPlayer.seekTo(mainTime, true);
-        if(mainState===1 && syncPlayer.getPlayerState()!==1) syncPlayer.playVideo();
-        else if(mainState!==1 && syncPlayer.getPlayerState()===1) syncPlayer.pauseVideo();
-        if(mainState===1) syncPlayer.setVolume(0);
-    }catch(e){}
 }
-setInterval(()=>{
-    if(currentPlayingDeck && state[currentPlayingDeck].playing){
+setInterval(() => {
+    if (currentPlayingDeck && state[currentPlayingDeck].playing) {
         syncBackgroundWithDeck(currentPlayingDeck);
     }
-},500);
+}, 500);
 
 // ---------- CONTROLES UI ----------
 const transparentCheck = document.getElementById('transparentMode');

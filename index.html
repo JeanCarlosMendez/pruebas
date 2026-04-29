@@ -42,7 +42,6 @@
           z-index: -2;
           opacity: 0.4;
           filter: blur(8px) brightness(0.5);
-          transition: opacity 0.5s ease;
       }
       .background-overlay {
           position: fixed;
@@ -130,7 +129,6 @@
       }
       .vinyl { width: 130px; height: 130px; border-radius: 50%; cursor: pointer; }
       .vinyl canvas { border-radius: 50%; display: block; }
-      /* Loader sobre el vinilo */
       .loader-overlay {
           position: absolute;
           top: 0;
@@ -377,6 +375,7 @@
           gap: 12px;
           overflow-y: auto;
       }
+      /* Visualizador de ritmo - ya no tiene BPM, solo ondas de ritmo */
       .viz-section {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
@@ -392,22 +391,13 @@
           margin-bottom: 10px;
           text-align: center;
       }
-      .bpm-row {
-          display: flex;
-          justify-content: space-around;
-          margin-bottom: 15px;
+      canvas#rhythm-canvas {
+          width: 100%;
+          height: 120px;
+          background: rgba(0,0,0,0.4);
+          border-radius: 12px;
+          display: block;
       }
-      .bpm-box {
-          text-align: center;
-          background: rgba(18,18,26,0.8);
-          border-radius: 10px;
-          padding: 10px 20px;
-          border: 1px solid var(--dj-border);
-      }
-      .bpm-val { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 700; }
-      .bpm-a { color: var(--dj-cyan); }
-      .bpm-b { color: var(--dj-pink); }
-      .bpm-lbl { font-size: 10px; color: var(--dj-muted); letter-spacing: 1px; }
       
       .playlist-panel {
           background: rgba(26,26,46,0.85);
@@ -454,7 +444,6 @@
           cursor: pointer;
           font-weight: 700;
       }
-      /* Checkbox pequeño para shuffle */
       .shuffle-control {
           display: flex;
           align-items: center;
@@ -688,7 +677,7 @@
 <div class="dj-app">
   <div class="header">
     <h1>DJMENDEZ PRO</h1>
-    <p>🎂 MI CUMPLEAÑOS 🎂 • VIDEO DE FONDO EN VIVO</p>
+    <p>🎂 MI CUMPLEAÑOS 🎂 • VISUALIZADOR DE RITMO EN VIVO</p>
   </div>
 
   <div class="main-layout">
@@ -777,15 +766,15 @@
           <div class="eq-row">
             <div class="eq-deck eq-deck-a">
               <div class="eq-deck-title">🎚️ EQ DECK A</div>
-              <div class="eq-band"><label>🔊 HI (Agudos)</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><div class="eq-value" id="eq-a-hi-val">75%</div></div>
-              <div class="eq-band"><label>🎵 MID (Medios)</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><div class="eq-value" id="eq-a-mid-val">75%</div></div>
-              <div class="eq-band"><label>🔊 LOW (Graves)</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><div class="eq-value" id="eq-a-low-val">75%</div></div>
+              <div class="eq-band"><label>🔊 HI</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><div class="eq-value" id="eq-a-hi-val">75%</div></div>
+              <div class="eq-band"><label>🎵 MID</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><div class="eq-value" id="eq-a-mid-val">75%</div></div>
+              <div class="eq-band"><label>🔊 LOW</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><div class="eq-value" id="eq-a-low-val">75%</div></div>
             </div>
             <div class="eq-deck eq-deck-b">
               <div class="eq-deck-title">🎚️ EQ DECK B</div>
-              <div class="eq-band"><label>🔊 HI (Agudos)</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><div class="eq-value" id="eq-b-hi-val">75%</div></div>
-              <div class="eq-band"><label>🎵 MID (Medios)</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><div class="eq-value" id="eq-b-mid-val">75%</div></div>
-              <div class="eq-band"><label>🔊 LOW (Graves)</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><div class="eq-value" id="eq-b-low-val">75%</div></div>
+              <div class="eq-band"><label>🔊 HI</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><div class="eq-value" id="eq-b-hi-val">75%</div></div>
+              <div class="eq-band"><label>🎵 MID</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><div class="eq-value" id="eq-b-mid-val">75%</div></div>
+              <div class="eq-band"><label>🔊 LOW</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><div class="eq-value" id="eq-b-low-val">75%</div></div>
             </div>
           </div>
         </div>
@@ -793,17 +782,10 @@
     </div>
 
     <div class="right-col">
+      <!-- NUEVO VISUALIZADOR DE RITMO (sin números BPM) -->
       <div class="viz-section">
-        <div class="viz-label">BPM SYNC • 🎂 FELIZ CUMPLEAÑOS 🎂</div>
-        <div class="bpm-row">
-          <div class="bpm-box"><div class="bpm-val bpm-a" id="bpm-a">128</div><div class="bpm-lbl">DECK A</div></div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-            <button class="btn" style="font-size:12px;padding:8px 15px;border-color:var(--dj-amber);color:var(--dj-amber)" onclick="syncBPM()">SYNC</button>
-            <button class="btn" style="font-size:11px;padding:5px 12px" onclick="tapTempo()">TAP</button>
-          </div>
-          <div class="bpm-box"><div class="bpm-val bpm-b" id="bpm-b">132</div><div class="bpm-lbl">DECK B</div></div>
-        </div>
-        <canvas id="viz-canvas" width="700" height="55" style="width:100%;height:55px;border-radius:8px;background:rgba(18,18,26,0.5)"></canvas>
+        <div class="viz-label">🎵 VISUALIZADOR DE RITMO 🎵</div>
+        <canvas id="rhythm-canvas" width="800" height="120"></canvas>
       </div>
 
       <div class="playlist-panel">
@@ -878,9 +860,9 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, bpm: 132, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// Variables para la animación de waveform
-let waveAnimation = null;
-let wavePhase = 0;
+// Variables para animación de ritmo
+let rhythmPhase = 0;
+let lastTimestamp = 0;
 
 // ------------------------------------------------------------------
 //  FUNCIONES AUXILIARES
@@ -966,7 +948,6 @@ function shuffleArray(arr) {
 function applyShuffleToPlaylist() {
   if(!shuffleEnabled || originalPlaylist.length === 0) {
     if(!shuffleEnabled && originalPlaylist.length) {
-      // restaurar orden original
       activePlaylist.a = [...originalPlaylist];
       activePlaylist.b = [...originalPlaylist];
     } else if(shuffleEnabled && originalPlaylist.length) {
@@ -1052,8 +1033,8 @@ async function loadYouTubePlaylist() {
   }
 }
 
-// Carga sin autoplay y con loader
-function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
+// Nueva función: carga sin autoplay pero con loader, y al finalizar canción se reproduce automáticamente
+function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false) {
   if((deck === 'a' && isLoadingA) || (deck === 'b' && isLoadingB)) {
     updateStatus(`⏳ Ya cargando en Deck ${deck.toUpperCase()}, espera...`);
     return;
@@ -1080,12 +1061,16 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
         playerVars: { autoplay: 0, controls: 0, disablekb: 1, modestbranding: 1, playsinline: 1, origin: window.location.origin },
         events: {
           onReady: (e) => {
-            updateStatus(`✅ "${title.substring(0,30)}" listo en Deck ${deck.toUpperCase()} → PLAY`);
+            updateStatus(`✅ "${title.substring(0,30)}" listo en Deck ${deck.toUpperCase()} → ${autoPlayNext ? 'reproduciendo' : 'presiona PLAY'}`);
             state[deck].duration = e.target.getDuration();
             e.target.setVolume(state[deck].vol);
             updateUI(deck);
             showLoader(deck, false);
             if(deck === 'a') isLoadingA = false; else isLoadingB = false;
+            // Si es por autoPlayNext (siguiente canción automática), darle play directamente
+            if(autoPlayNext) {
+              setTimeout(() => { e.target.playVideo(); }, 200);
+            }
           },
           onStateChange: (e) => {
             if(e.data === YT.PlayerState.PLAYING) {
@@ -1104,7 +1089,8 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
             } else if(e.data === YT.PlayerState.ENDED) {
               state[deck].playing = false;
               document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
-              nextTrackDeck(deck);
+              // Reproducir siguiente canción automáticamente con autoPlay = true
+              nextTrackDeck(deck, true); // true indica que debe empezar a sonar sola
             }
           },
           onError: (err) => {
@@ -1131,22 +1117,29 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
   }
 }
 
+// Modificamos nextTrackDeck para aceptar un parámetro autoPlay que cargue y reproduzca automáticamente
+function nextTrackDeck(deck, autoPlay = false) {
+  if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
+  let newIndex = playlistIndex[deck] + 1;
+  if(newIndex >= activePlaylist[deck].length) newIndex = 0;
+  playlistIndex[deck] = newIndex;
+  const track = activePlaylist[deck][newIndex];
+  if(track) {
+    updateStatus(`⏭️ Siguiente: ${track.title}${autoPlay ? ' (reproducción automática)' : ''}`);
+    loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, autoPlay);
+  }
+}
+
 function prevTrackDeck(deck) {
   if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
   let newIndex = playlistIndex[deck] - 1;
   if(newIndex < 0) newIndex = activePlaylist[deck].length - 1;
   playlistIndex[deck] = newIndex;
   const track = activePlaylist[deck][newIndex];
-  if(track) loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist);
-}
-
-function nextTrackDeck(deck) {
-  if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
-  let newIndex = playlistIndex[deck] + 1;
-  if(newIndex >= activePlaylist[deck].length) newIndex = 0;
-  playlistIndex[deck] = newIndex;
-  const track = activePlaylist[deck][newIndex];
-  if(track) loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist);
+  if(track) {
+    updateStatus(`⏮️ Anterior: ${track.title}`);
+    loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, false);
+  }
 }
 
 function updateProgress() {
@@ -1196,11 +1189,11 @@ async function searchYouTube() {
       });
       document.querySelectorAll('.search-load-a').forEach(btn => btn.addEventListener('click', (e) => {
         const el = e.currentTarget;
-        loadToDeckNoAutoPlay('a', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'));
+        loadToDeckNoAutoPlay('a', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'), false);
       }));
       document.querySelectorAll('.search-load-b').forEach(btn => btn.addEventListener('click', (e) => {
         const el = e.currentTarget;
-        loadToDeckNoAutoPlay('b', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'));
+        loadToDeckNoAutoPlay('b', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'), false);
       }));
     } else resultsDiv.innerHTML = '<div class="empty">No se encontraron resultados</div>';
   } catch(e) {
@@ -1215,7 +1208,59 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Dibujado de waveform animada
+// VISUALIZADOR DE RITMO (barras que suben y bajan al ritmo, con color del deck que suena)
+function drawRhythmVisualizer() {
+  const canvas = document.getElementById('rhythm-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth;
+  const h = canvas.height = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+  
+  // Determinar qué deck está sonando y su color
+  let activeColor = '#888';
+  let intensity = 0;
+  if(state.a.playing) {
+    activeColor = '#00d4ff';
+    // Simular intensidad en base al progreso + tiempo real para dar sensación de ritmo
+    intensity = 0.3 + 0.5 * (Math.sin(Date.now() * 0.02) * 0.5 + 0.5);
+    if(state.a.progress > 0) {
+      // Pequeña modulación por el beat (simulado)
+      intensity += 0.2 * Math.sin(state.a.progress * 20);
+    }
+  } else if(state.b.playing) {
+    activeColor = '#ff2d78';
+    intensity = 0.3 + 0.5 * (Math.sin(Date.now() * 0.02) * 0.5 + 0.5);
+    if(state.b.progress > 0) {
+      intensity += 0.2 * Math.sin(state.b.progress * 20);
+    }
+  } else {
+    activeColor = '#ffaa00';
+    intensity = 0.2;
+  }
+  intensity = Math.min(0.9, Math.max(0.2, intensity));
+  
+  const barCount = 60;
+  const barWidth = (w / barCount) * 0.7;
+  const spacing = (w / barCount);
+  for(let i = 0; i < barCount; i++) {
+    let heightFactor = intensity * (0.5 + 0.5 * Math.sin(i * 0.3 + Date.now() * 0.01));
+    heightFactor = Math.pow(heightFactor, 1.5);
+    let barHeight = 5 + heightFactor * (h - 15);
+    let x = i * spacing + (spacing - barWidth)/2;
+    let y = h - barHeight;
+    ctx.fillStyle = activeColor;
+    ctx.fillRect(x, y, barWidth, barHeight);
+    // Efecto de brillo
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = activeColor;
+    ctx.fillRect(x, y, barWidth, barHeight);
+    ctx.shadowBlur = 0;
+  }
+  requestAnimationFrame(drawRhythmVisualizer);
+}
+
+// Dibujado de waveform animada individual para cada deck
 function drawWaveformAnimated() {
   const canvasA = document.getElementById('wave-a');
   const canvasB = document.getElementById('wave-b');
@@ -1226,11 +1271,11 @@ function drawWaveformAnimated() {
   const barCount = 40;
   const barWidth = (w / barCount) * 0.8;
   const step = w / barCount;
+  const now = Date.now() / 1000;
   
   function drawDeck(ctx, isPlaying, color) {
     ctx.clearRect(0, 0, w, h);
     if(!isPlaying) {
-      // dibujo estático silencioso
       for(let i=0; i<barCount; i++) {
         let height = 4 + Math.sin(i * 0.5) * 3;
         let x = i * step + (step - barWidth)/2;
@@ -1240,9 +1285,8 @@ function drawWaveformAnimated() {
       return;
     }
     // animación cuando suena
-    wavePhase += 0.15;
     for(let i=0; i<barCount; i++) {
-      let val = Math.sin(wavePhase + i * 0.3) * 0.5 + 0.5;
+      let val = Math.sin(now * 8 + i * 0.3) * 0.5 + 0.5;
       val = 0.3 + val * 0.7;
       let height = 8 + val * (h - 16);
       let x = i * step + (step - barWidth)/2;
@@ -1289,24 +1333,6 @@ function drawVinyl(id, angle, color, playing) {
   }
 }
 
-function drawViz() {
-  const c = document.getElementById('viz-canvas');
-  if(!c) return;
-  const ctx = c.getContext('2d');
-  const w = c.width, h = c.height;
-  ctx.clearRect(0,0,w,h);
-  const t = Date.now()/1000;
-  const bars = 70;
-  for(let i=0;i<bars;i++){
-    const half = i < bars/2;
-    const color = half ? '#00d4ff' : '#ff2d78';
-    const amp = (Math.sin(t*(state[half?'a':'b'].bpm/60)+i*0.4)+1)/2;
-    const barH = amp*(h-10)+5;
-    ctx.fillStyle = color+'cc';
-    ctx.fillRect(i*(w/bars), h-barH, (w/bars)-1, barH);
-  }
-}
-
 function fmtTime(s){ return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60); }
 function updateUI(id){
   const s = state[id];
@@ -1325,7 +1351,6 @@ function loop() {
   if(state.b.playing) vinylAngleB += 0.03;
   drawVinyl('a', vinylAngleA, '#00d4ff', state.a.playing);
   drawVinyl('b', vinylAngleB, '#ff2d78', state.b.playing);
-  drawViz();
   updateUI('a'); updateUI('b');
   requestAnimationFrame(loop);
 }
@@ -1344,24 +1369,6 @@ function seekDeck(id, e){
   const pct = (e.clientX - rect.left) / rect.width;
   const player = id === 'a' ? playerA : playerB;
   if(player && player.seekTo && state[id].duration) player.seekTo(pct * state[id].duration, true);
-}
-function syncBPM(){
-  const mid = Math.round((state.a.bpm+state.b.bpm)/2);
-  state.a.bpm = mid; state.b.bpm = mid;
-  document.getElementById('bpm-a').textContent = mid;
-  document.getElementById('bpm-b').textContent = mid;
-}
-let tapTimes = [];
-function tapTempo(){
-  const now = Date.now();
-  tapTimes.push(now);
-  if(tapTimes.length>1){
-    const diffs = tapTimes.slice(1).map((t,i)=>t-tapTimes[i]);
-    const avg = diffs.reduce((a,b)=>a+b)/diffs.length;
-    state.a.bpm = Math.round(60000/avg);
-    document.getElementById('bpm-a').textContent = state.a.bpm;
-  }
-  if(tapTimes.length>8) tapTimes = tapTimes.slice(-4);
 }
 function setVol(id, v){
   state[id].vol = parseInt(v);
@@ -1385,7 +1392,7 @@ function quickLoadTrack(id){
   const inp = document.getElementById(`track-name-${id}`).value.trim();
   if(!inp) return;
   const videoId = extractVideoId(inp);
-  loadToDeckNoAutoPlay(id, videoId, 'Track personalizado', 'Manual');
+  loadToDeckNoAutoPlay(id, videoId, 'Track personalizado', 'Manual', false);
 }
 function toggleQuickPanel(){
   document.getElementById('quickPanel').classList.toggle('show');
@@ -1405,6 +1412,7 @@ document.getElementById('shuffle-checkbox').addEventListener('change', (e) => {
 
 // Inicialización
 drawWaveformAnimated();
+drawRhythmVisualizer();
 loadYouTubeAPI();
 loop();
 setInterval(() => crossfade(document.getElementById('crossfader').value), 100);

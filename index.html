@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>DJMENDEZ PRO - 24 AÑOS</title>
+    <title>DJMENDEZ PRO - 24 AÑOS + REPRODUCTOR LOCAL</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
-      * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
           --dj-bg: #0a0a0f;
           --dj-surface: #12121a;
@@ -33,7 +29,7 @@
           overflow: hidden;
           position: relative;
       }
-      /* Reproductor de fondo sincronizado (visible pero detrás) */
+      /* Reproductor de fondo sincronizado (para DJ) */
       .sync-player {
           position: fixed;
           top: 0;
@@ -60,6 +56,7 @@
           background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
           z-index: -2;
       }
+      /* Capa de efectos fiesta */
       .fiesta-layer {
           position: fixed;
           top: 0;
@@ -125,6 +122,15 @@
           100% { transform: scale(1.2) rotate(360deg); opacity: 0; }
       }
       
+      /* Modos (DJ y Personal) */
+      .mode-dj, .mode-personal {
+          transition: opacity 0.3s;
+      }
+      .mode-dj.hide, .mode-personal.hide {
+          display: none;
+      }
+      
+      /* Estilos para modo DJ (ya existentes) */
       .dj-app {
           max-width: 1400px;
           margin: 0 auto;
@@ -136,16 +142,11 @@
           z-index: 2;
           transition: var(--transition-opacity);
       }
-      .dj-app.transparent .left-col,
-      .dj-app.transparent .right-col,
-      .dj-app.transparent .mixer,
-      .dj-app.transparent .decks,
-      .dj-app.transparent .playlist-panel,
-      .dj-app.transparent .yt-panel,
-      .dj-app.transparent .floating-btn,
-      .dj-app.transparent .quick-panel,
-      .dj-app.transparent .status-bar,
-      .dj-app.transparent .current-track-badge,
+      .dj-app.transparent .left-col, .dj-app.transparent .right-col,
+      .dj-app.transparent .mixer, .dj-app.transparent .decks,
+      .dj-app.transparent .playlist-panel, .dj-app.transparent .yt-panel,
+      .dj-app.transparent .floating-btn, .dj-app.transparent .quick-panel,
+      .dj-app.transparent .status-bar, .dj-app.transparent .current-track-badge,
       .dj-app.transparent .header {
           opacity: 0.35;
       }
@@ -179,7 +180,7 @@
           border: 1px solid var(--dj-amber);
           border-radius: 15px;
           padding: 12px;
-          min-width: 180px;
+          min-width: 200px;
           flex-direction: column;
           gap: 10px;
           z-index: 1101;
@@ -362,7 +363,6 @@
       .btn.play { background: var(--dj-green); color: #000; border-color: var(--dj-green); font-weight: 700; }
       .btn-pink.play { background: var(--dj-pink); border-color: var(--dj-pink); }
       
-      /* MASTER MIXER COMPACTO */
       .mixer {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
@@ -405,11 +405,7 @@
           flex: 1;
           text-align: center;
       }
-      .vol-control label {
-          font-size: 8px;
-          display: block;
-          margin-bottom: 2px;
-      }
+      .vol-control label { font-size: 8px; display: block; margin-bottom: 2px; }
       .vol-slider {
           width: 100%;
           height: 4px;
@@ -434,11 +430,7 @@
           padding: 1px 3px;
           border-radius: 8px;
       }
-      .crossfader-group label {
-          font-size: 8px;
-          display: block;
-          margin-bottom: 2px;
-      }
+      .crossfader-group label { font-size: 8px; display: block; margin-bottom: 2px; }
       .crossfader {
           width: 100%;
           height: 4px;
@@ -469,11 +461,7 @@
           flex: 1;
           text-align: center;
       }
-      .eq-mini .eq-title {
-          font-size: 8px;
-          font-weight: bold;
-          margin-bottom: 3px;
-      }
+      .eq-mini .eq-title { font-size: 8px; font-weight: bold; margin-bottom: 3px; }
       .eq-mini-a .eq-title { color: var(--dj-cyan); }
       .eq-mini-b .eq-title { color: var(--dj-pink); }
       .eq-band-mini {
@@ -482,10 +470,7 @@
           align-items: center;
           margin-bottom: 3px;
       }
-      .eq-band-mini label {
-          font-size: 6px;
-          color: var(--dj-muted);
-      }
+      .eq-band-mini label { font-size: 6px; color: var(--dj-muted); }
       .eq-band-mini input {
           width: 100%;
           height: 3px;
@@ -500,10 +485,7 @@
           border-radius: 50%;
           cursor: pointer;
       }
-      .eq-value {
-          font-size: 6px;
-          margin-top: 1px;
-      }
+      .eq-value { font-size: 6px; margin-top: 1px; }
       
       .right-col {
           display: flex;
@@ -740,6 +722,131 @@
           z-index: 1000;
           font-family: 'Orbitron', monospace;
       }
+      
+      /* ========== NUEVO ESTILO MODO PERSONAL (con imagen a pantalla completa y controles discretos) ========== */
+      .mode-personal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 15;
+          background: black;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+      .personal-bg-image {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          background: black;
+          z-index: 16;
+      }
+      /* Controles flotantes semi-transparentes */
+      .personal-controls {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(5px);
+          padding: 15px 20px;
+          z-index: 20;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          transition: opacity 0.3s;
+          border-top: 1px solid rgba(255,255,255,0.2);
+      }
+      .personal-controls .top-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          flex-wrap: wrap;
+      }
+      .personal-controls button {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          color: white;
+          font-size: 18px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: 0.2s;
+      }
+      .personal-controls button:hover { background: var(--dj-amber); color: black; }
+      .time-display {
+          font-size: 12px;
+          color: white;
+          font-family: monospace;
+      }
+      .progress-container {
+          flex: 1;
+          height: 5px;
+          background: rgba(255,255,255,0.3);
+          border-radius: 3px;
+          cursor: pointer;
+      }
+      .progress-fill-local {
+          width: 0%;
+          height: 100%;
+          background: var(--dj-amber);
+          border-radius: 3px;
+      }
+      .volume-slider {
+          width: 80px;
+          height: 4px;
+          -webkit-appearance: none;
+          background: rgba(255,255,255,0.3);
+          border-radius: 3px;
+      }
+      .volume-slider::-webkit-slider-thumb {
+          width: 12px;
+          height: 12px;
+          background: var(--dj-amber);
+          border-radius: 50%;
+          cursor: pointer;
+      }
+      .visualizer-small {
+          height: 40px;
+          background: rgba(0,0,0,0.3);
+          border-radius: 5px;
+          margin-top: 5px;
+      }
+      canvas#local-wave {
+          width: 100%;
+          height: 100%;
+          display: block;
+          border-radius: 5px;
+      }
+      /* Botón para cargar archivos (pequeño, sin molestar) */
+      .upload-btn {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: rgba(0,0,0,0.5);
+          border: none;
+          color: white;
+          font-size: 20px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          cursor: pointer;
+          z-index: 21;
+          backdrop-filter: blur(4px);
+          transition: 0.2s;
+      }
+      .upload-btn:hover { background: var(--dj-amber); color: black; }
+      .hidden-input {
+          display: none;
+      }
+      
       @media (max-width: 1000px) {
           .mixer-row { flex-wrap: wrap; gap: 5px; }
           .vol-group, .crossfader-group, .eqs-group { flex: 1 1 auto; min-width: 120px; }
@@ -754,12 +861,9 @@
 <div class="options-dropdown">
     <button class="dropdown-btn" id="dropdownBtn">⚙️ OPCIONES</button>
     <div class="dropdown-content" id="dropdownContent">
-        <label class="dropdown-item">
-            <input type="checkbox" id="transparentMode"> 🎨 Modo Transparente
-        </label>
-        <label class="dropdown-item">
-            <input type="checkbox" id="fiestaMode"> 🎉 Modo Fiesta 24 años
-        </label>
+        <label class="dropdown-item"><input type="checkbox" id="transparentMode"> 🎨 Modo Transparente</label>
+        <label class="dropdown-item"><input type="checkbox" id="fiestaMode"> 🎉 Modo Fiesta 24 años</label>
+        <label class="dropdown-item"><input type="checkbox" id="personalMode"> 🖼️ Modo Personal (Audio local)</label>
     </div>
 </div>
 
@@ -770,130 +874,84 @@
 
 <div id="fiestaLayer" class="fiesta-layer"></div>
 <div class="strobe" id="strobe"></div>
-
-<!-- Badge que muestra la canción actual -->
 <div class="current-track-badge" id="track-badge">🎵 Esperando canción...</div>
 
-<div class="dj-app" id="djApp">
-  <div class="header">
-    <h1>DJMENDEZ PRO</h1>
-    <p>🎂 24 AÑOS - JEAN CARLOS MENDEZ 🎂</p>
-  </div>
-
-  <div class="main-layout">
-    <div class="left-col">
-      <div class="decks">
-        <div class="deck deck-a">
-          <div class="deck-label">DECK A</div>
-          <div class="vinyl-wrap">
-            <div class="vinyl" id="vinyl-a" onclick="togglePlay('a')">
-              <canvas id="canvas-a" width="130" height="130"></canvas>
-            </div>
-            <div id="loader-a" class="loader-overlay"><div class="spinner"></div></div>
-          </div>
-          <div class="track-info"><div class="track-title" id="title-a">NO TRACK LOADED</div><div class="track-artist" id="artist-a">— —</div></div>
-          <div class="waveform-wrap"><canvas id="wave-a" class="wave-canvas" width="300" height="45"></canvas></div>
-          <div class="progress-bar" onclick="seekDeck('a',event)"><div class="progress-fill" id="prog-a" style="width:0%"></div></div>
-          <div class="time-row"><span id="cur-a">0:00</span><span id="rem-a">-0:00</span></div>
-          <div class="deck-controls">
-            <button class="btn" onclick="prevTrackDeck('a')">|◀ PREV</button>
-            <button class="btn" onclick="cuePoint('a')">CUE</button>
-            <button class="btn play" id="play-a" onclick="togglePlay('a')">▶ PLAY</button>
-            <button class="btn" onclick="nextTrackDeck('a')">▶ NEXT</button>
-          </div>
-        </div>
-        <div class="deck deck-b">
-          <div class="deck-label">DECK B</div>
-          <div class="vinyl-wrap">
-            <div class="vinyl" id="vinyl-b" onclick="togglePlay('b')">
-              <canvas id="canvas-b" width="130" height="130"></canvas>
-            </div>
-            <div id="loader-b" class="loader-overlay"><div class="spinner"></div></div>
-          </div>
-          <div class="track-info"><div class="track-title" id="title-b">NO TRACK LOADED</div><div class="track-artist" id="artist-b">— —</div></div>
-          <div class="waveform-wrap"><canvas id="wave-b" class="wave-canvas" width="300" height="45"></canvas></div>
-          <div class="progress-bar" onclick="seekDeck('b',event)"><div class="progress-fill" id="prog-b" style="width:0%"></div></div>
-          <div class="time-row"><span id="cur-b">0:00</span><span id="rem-b">-0:00</span></div>
-          <div class="deck-controls">
-            <button class="btn" onclick="prevTrackDeck('b')">|◀ PREV</button>
-            <button class="btn" onclick="cuePoint('b')">CUE</button>
-            <button class="btn play btn-pink" id="play-b" onclick="togglePlay('b')">▶ PLAY</button>
-            <button class="btn" onclick="nextTrackDeck('b')">▶ NEXT</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="mixer">
-        <div class="mixer-title">🎛️ MASTER MIXER 🎛️</div>
-        <div class="mixer-row">
-          <div class="vol-group">
-            <div class="vol-control">
-              <label class="deck-a-label">VOL A</label>
-              <input type="range" class="vol-slider a-slider" id="vol-a-slider" min="0" max="100" value="80" oninput="setVol('a', this.value)">
-              <div><span class="vol-value" id="vol-a-val">80%</span></div>
-            </div>
-            <div class="vol-control">
-              <label class="deck-b-label">VOL B</label>
-              <input type="range" class="vol-slider b-slider" id="vol-b-slider" min="0" max="100" value="80" oninput="setVol('b', this.value)">
-              <div><span class="vol-value" id="vol-b-val">80%</span></div>
-            </div>
-          </div>
-          <div class="crossfader-group">
-            <label>🎚️ X-FADER</label>
-            <input type="range" class="crossfader" id="crossfader" min="0" max="100" value="50" oninput="crossfade(this.value)">
-            <div class="crossfader-labels">
-              <span style="color:var(--dj-cyan)">A</span><span style="color:var(--dj-pink)">B</span>
-            </div>
-          </div>
-          <div class="eqs-group">
-            <div class="eq-mini eq-mini-a">
-              <div class="eq-title">EQ A</div>
-              <div class="eq-band-mini"><label>HI</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><span class="eq-value" id="eq-a-hi-val">75%</span></div>
-              <div class="eq-band-mini"><label>MID</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><span class="eq-value" id="eq-a-mid-val">75%</span></div>
-              <div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><span class="eq-value" id="eq-a-low-val">75%</span></div>
-            </div>
-            <div class="eq-mini eq-mini-b">
-              <div class="eq-title">EQ B</div>
-              <div class="eq-band-mini"><label>HI</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><span class="eq-value" id="eq-b-hi-val">75%</span></div>
-              <div class="eq-band-mini"><label>MID</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><span class="eq-value" id="eq-b-mid-val">75%</span></div>
-              <div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><span class="eq-value" id="eq-b-low-val">75%</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+<!-- MODO DJ -->
+<div id="modeDJ" class="mode-dj">
+  <div class="dj-app" id="djApp">
+    <div class="header">
+      <h1>DJMENDEZ PRO</h1>
+      <p>🎂 24 AÑOS - JEAN CARLOS MENDEZ 🎂</p>
     </div>
-
-    <div class="right-col">
-      <div class="playlist-panel">
-        <div class="playlist-title">🎵 CARGAR PLAYLIST</div>
-        <div class="playlist-input-row">
-          <input type="text" class="playlist-url-input" id="playlist-url" placeholder="URL de playlist YouTube" />
-          <button class="btn-load-playlist" onclick="loadYouTubePlaylist()">CARGAR</button>
-          <div class="shuffle-control"><input type="checkbox" id="shuffle-checkbox"><label>🔀 SHUFFLE</label></div>
+    <div class="main-layout">
+      <div class="left-col">
+        <div class="decks">
+          <div class="deck deck-a">
+            <div class="deck-label">DECK A</div>
+            <div class="vinyl-wrap"><div class="vinyl" id="vinyl-a" onclick="togglePlay('a')"><canvas id="canvas-a" width="130" height="130"></canvas></div><div id="loader-a" class="loader-overlay"><div class="spinner"></div></div></div>
+            <div class="track-info"><div class="track-title" id="title-a">NO TRACK LOADED</div><div class="track-artist" id="artist-a">— —</div></div>
+            <div class="waveform-wrap"><canvas id="wave-a" class="wave-canvas" width="300" height="45"></canvas></div>
+            <div class="progress-bar" onclick="seekDeck('a',event)"><div class="progress-fill" id="prog-a" style="width:0%"></div></div>
+            <div class="time-row"><span id="cur-a">0:00</span><span id="rem-a">-0:00</span></div>
+            <div class="deck-controls"><button class="btn" onclick="prevTrackDeck('a')">|◀ PREV</button><button class="btn" onclick="cuePoint('a')">CUE</button><button class="btn play" id="play-a" onclick="togglePlay('a')">▶ PLAY</button><button class="btn" onclick="nextTrackDeck('a')">▶ NEXT</button></div>
+          </div>
+          <div class="deck deck-b">
+            <div class="deck-label">DECK B</div>
+            <div class="vinyl-wrap"><div class="vinyl" id="vinyl-b" onclick="togglePlay('b')"><canvas id="canvas-b" width="130" height="130"></canvas></div><div id="loader-b" class="loader-overlay"><div class="spinner"></div></div></div>
+            <div class="track-info"><div class="track-title" id="title-b">NO TRACK LOADED</div><div class="track-artist" id="artist-b">— —</div></div>
+            <div class="waveform-wrap"><canvas id="wave-b" class="wave-canvas" width="300" height="45"></canvas></div>
+            <div class="progress-bar" onclick="seekDeck('b',event)"><div class="progress-fill" id="prog-b" style="width:0%"></div></div>
+            <div class="time-row"><span id="cur-b">0:00</span><span id="rem-b">-0:00</span></div>
+            <div class="deck-controls"><button class="btn" onclick="prevTrackDeck('b')">|◀ PREV</button><button class="btn" onclick="cuePoint('b')">CUE</button><button class="btn play btn-pink" id="play-b" onclick="togglePlay('b')">▶ PLAY</button><button class="btn" onclick="nextTrackDeck('b')">▶ NEXT</button></div>
+          </div>
         </div>
-        <div id="playlist-items" class="playlist-items"><div style="text-align:center;padding:20px">Pega una URL de playlist</div></div>
+        <div class="mixer">
+          <div class="mixer-title">🎛️ MASTER MIXER 🎛️</div>
+          <div class="mixer-row">
+            <div class="vol-group"><div class="vol-control"><label class="deck-a-label">VOL A</label><input type="range" class="vol-slider a-slider" id="vol-a-slider" min="0" max="100" value="80" oninput="setVol('a', this.value)"><div><span class="vol-value" id="vol-a-val">80%</span></div></div><div class="vol-control"><label class="deck-b-label">VOL B</label><input type="range" class="vol-slider b-slider" id="vol-b-slider" min="0" max="100" value="80" oninput="setVol('b', this.value)"><div><span class="vol-value" id="vol-b-val">80%</span></div></div></div>
+            <div class="crossfader-group"><label>🎚️ X-FADER</label><input type="range" class="crossfader" id="crossfader" min="0" max="100" value="50" oninput="crossfade(this.value)"><div class="crossfader-labels"><span style="color:var(--dj-cyan)">A</span><span style="color:var(--dj-pink)">B</span></div></div>
+            <div class="eqs-group"><div class="eq-mini eq-mini-a"><div class="eq-title">EQ A</div><div class="eq-band-mini"><label>HI</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><span class="eq-value" id="eq-a-hi-val">75%</span></div><div class="eq-band-mini"><label>MID</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><span class="eq-value" id="eq-a-mid-val">75%</span></div><div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><span class="eq-value" id="eq-a-low-val">75%</span></div></div><div class="eq-mini eq-mini-b"><div class="eq-title">EQ B</div><div class="eq-band-mini"><label>HI</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><span class="eq-value" id="eq-b-hi-val">75%</span></div><div class="eq-band-mini"><label>MID</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><span class="eq-value" id="eq-b-mid-val">75%</span></div><div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><span class="eq-value" id="eq-b-low-val">75%</span></div></div></div>
+          </div>
+        </div>
       </div>
-      <div class="yt-panel">
-        <div class="yt-title">🎵 BUSCAR CANCIONES</div>
-        <div class="yt-search-row"><input type="text" class="yt-search-input" id="yt-search" placeholder="Buscar..." onkeypress="if(event.key==='Enter') searchYouTube()"><button class="btn-yt-search" onclick="searchYouTube()">BUSCAR</button></div>
-        <div id="yt-results" class="results-list"><div style="text-align:center;padding:20px">Busca canciones</div></div>
+      <div class="right-col">
+        <div class="playlist-panel"><div class="playlist-title">🎵 CARGAR PLAYLIST</div><div class="playlist-input-row"><input type="text" class="playlist-url-input" id="playlist-url" placeholder="URL de playlist YouTube" /><button class="btn-load-playlist" onclick="loadYouTubePlaylist()">CARGAR</button><div class="shuffle-control"><input type="checkbox" id="shuffle-checkbox"><label>🔀 SHUFFLE</label></div></div><div id="playlist-items" class="playlist-items"><div style="text-align:center;padding:20px">Pega una URL de playlist</div></div></div>
+        <div class="yt-panel"><div class="yt-title">🎵 BUSCAR CANCIONES</div><div class="yt-search-row"><input type="text" class="yt-search-input" id="yt-search" placeholder="Buscar..." onkeypress="if(event.key==='Enter') searchYouTube()"><button class="btn-yt-search" onclick="searchYouTube()">BUSCAR</button></div><div id="yt-results" class="results-list"><div style="text-align:center;padding:20px">Busca canciones</div></div></div>
       </div>
     </div>
   </div>
+  <div class="floating-btn"><button class="quick-toggle" onclick="toggleQuickPanel()">⚡ CARGA RÁPIDA</button></div>
+  <div class="quick-panel" id="quickPanel"><div class="links-title">CARGAR TRACK RÁPIDO</div><div class="link-row"><input type="text" class="link-input" id="track-name-a" placeholder="URL o ID Deck A" /><button class="btn" style="border-color:var(--dj-cyan)" onclick="quickLoadTrack('a')">LOAD A</button></div><div class="link-row"><input type="text" class="link-input" id="track-name-b" placeholder="URL o ID Deck B" /><button class="btn" style="border-color:var(--dj-pink)" onclick="quickLoadTrack('b')">LOAD B</button></div></div>
+  <div class="status-bar" id="status-bar">🎧 Inicializando...</div>
 </div>
 
-<div class="floating-btn"><button class="quick-toggle" onclick="toggleQuickPanel()">⚡ CARGA RÁPIDA</button></div>
-<div class="quick-panel" id="quickPanel">
-  <div class="links-title">CARGAR TRACK RÁPIDO</div>
-  <div class="link-row"><input type="text" class="link-input" id="track-name-a" placeholder="URL o ID Deck A" /><button class="btn" style="border-color:var(--dj-cyan)" onclick="quickLoadTrack('a')">LOAD A</button></div>
-  <div class="link-row"><input type="text" class="link-input" id="track-name-b" placeholder="URL o ID Deck B" /><button class="btn" style="border-color:var(--dj-pink)" onclick="quickLoadTrack('b')">LOAD B</button></div>
+<!-- MODO PERSONAL (con imagen a pantalla completa y controles discretos) -->
+<div id="modePersonal" class="mode-personal hide">
+    <img id="personalBgImage" class="personal-bg-image" style="display: none;">
+    <button class="upload-btn" id="uploadBtn" title="Cargar audio o imagen">📁</button>
+    <input type="file" id="localAudioFile" class="hidden-input" accept="audio/*">
+    <input type="file" id="localImageFile" class="hidden-input" accept="image/*">
+    <div class="personal-controls" id="personalControls" style="display: none;">
+        <div class="top-row">
+            <button id="playLocalBtn">▶</button>
+            <button id="pauseLocalBtn">⏸</button>
+            <div class="progress-container" id="localProgressBar">
+                <div class="progress-fill-local" id="localProgressFill"></div>
+            </div>
+            <span class="time-display" id="localCurrentTime">0:00</span>
+            <span class="time-display" id="localDuration">0:00</span>
+            <input type="range" id="localVolume" class="volume-slider" min="0" max="100" value="70">
+        </div>
+        <div class="visualizer-small">
+            <canvas id="local-wave" width="400" height="40"></canvas>
+        </div>
+    </div>
 </div>
 
 <div class="youtube-players" style="display:none;"><div id="yt-player-a"></div><div id="yt-player-b"></div></div>
-<div class="status-bar" id="status-bar">🎧 Inicializando...</div>
 
 <script>
-// ---------- ESTADO GLOBAL ----------
+// ================== TODO EL CÓDIGO DJ COMPLETO ==================
 let playerA = null, playerB = null;
 let syncPlayer = null;
 let currentBgVideoId = null;
@@ -913,30 +971,7 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// ---------- ACTUALIZAR BADGE DE CANCIÓN ----------
-function updateTrackBadge(deck, title) {
-    const badge = document.getElementById('track-badge');
-    if (deck === 'a' && state.a.playing) {
-        badge.innerHTML = `🎵 Ahora suena (A): ${title.substring(0, 35)} 🎵`;
-    } else if (deck === 'b' && state.b.playing) {
-        badge.innerHTML = `🎵 Ahora suena (B): ${title.substring(0, 35)} 🎵`;
-    } else if (state.a.playing) {
-        badge.innerHTML = `🎵 Ahora suena (A): ${state.a.title.substring(0, 35)} 🎵`;
-    } else if (state.b.playing) {
-        badge.innerHTML = `🎵 Ahora suena (B): ${state.b.title.substring(0, 35)} 🎵`;
-    } else {
-        // Si hay una canción cargada pero en pausa, mostrar "Cargada: ..."
-        if (state.a.videoId && !state.a.playing && state.a.title !== 'NO TRACK LOADED') {
-            badge.innerHTML = `⏸ Cargada (A): ${state.a.title.substring(0, 35)} ⏸`;
-        } else if (state.b.videoId && !state.b.playing && state.b.title !== 'NO TRACK LOADED') {
-            badge.innerHTML = `⏸ Cargada (B): ${state.b.title.substring(0, 35)} ⏸`;
-        } else {
-            badge.innerHTML = '🎵 Esperando canción...';
-        }
-    }
-}
-
-// ---------- EFECTOS DE CUMPLEAÑOS (con intensidad regulable) ----------
+// ---------- EFECTOS FIESTA ----------
 let fiestaActive = false;
 let intensity = 30;
 let flashInterval = null;
@@ -970,10 +1005,8 @@ function startFiestaEffects() {
     stopFiestaIntervals();
     updateStrobe();
     const layer = document.getElementById('fiestaLayer');
-    
     function schedule() {
         if(!fiestaActive) return;
-        // Confeti
         if(confetiInterval) clearTimeout(confetiInterval);
         const confetiDelay = getDelayFromIntensity(400);
         const makeConfeti = () => {
@@ -993,7 +1026,6 @@ function startFiestaEffects() {
         };
         makeConfeti();
         
-        // Números 24
         if(numerosInterval) clearTimeout(numerosInterval);
         const numDelay = getDelayFromIntensity(2500);
         const makeNum = () => {
@@ -1010,7 +1042,6 @@ function startFiestaEffects() {
         };
         makeNum();
         
-        // NOMBRE "Jean Carlos Mendez" cayendo
         if(nombreInterval) clearTimeout(nombreInterval);
         const nombreDelay = getDelayFromIntensity(3500);
         const makeNombre = () => {
@@ -1028,13 +1059,12 @@ function startFiestaEffects() {
         };
         makeNombre();
         
-        // Imágenes aleatorias (TAMAÑO AUMENTADO)
         if(imagenesInterval) clearTimeout(imagenesInterval);
         const imgDelay = getDelayFromIntensity(4000);
         const makeImg = () => {
             if(!fiestaActive) return;
             const randomNum = Math.floor(Math.random()*10)+1;
-            const imgUrl = `${randomNum}.png`;
+            const imgUrl = `imagenes/${randomNum}.jpg`;
             const img = new Image();
             img.onload = () => {
                 const imgDiv = document.createElement('img');
@@ -1042,7 +1072,7 @@ function startFiestaEffects() {
                 imgDiv.className = 'imagen-random';
                 imgDiv.style.left = Math.random()*80+'%';
                 imgDiv.style.top = Math.random()*80+'%';
-                imgDiv.style.width = '200px';  // más grande
+                imgDiv.style.width = '200px';
                 layer.appendChild(imgDiv);
                 setTimeout(()=>imgDiv.remove(),4000);
             };
@@ -1090,84 +1120,11 @@ intensitySlider.addEventListener('input', (e)=>{
         startFiestaEffects();
     }
 });
-
-// ---------- SINCRONIZACIÓN DE FONDO (con badge actualizado) ----------
-function initSyncPlayer() {
-    const container = document.getElementById('syncPlayer');
-    container.innerHTML = '';
-    if(syncPlayer) try{ syncPlayer.destroy(); }catch(e){}
-    syncPlayer = new YT.Player('syncPlayer', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-            autoplay: 1,
-            mute: 1,
-            controls: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            disablekb: 1
-        },
-        events: {
-            onReady: () => {
-                console.log('Sync player listo');
-                if (currentPlayingDeck && state[currentPlayingDeck].playing) {
-                    syncBackgroundWithDeck(currentPlayingDeck);
-                }
-            }
-        }
-    });
-}
-function syncBackgroundWithDeck(deckId) {
-    if (!syncPlayer || !apiReady) return;
-    const mainPlayer = (deckId === 'a') ? playerA : playerB;
-    if (!mainPlayer) return;
-    const videoId = state[deckId].videoId;
-    if (!videoId) return;
-    
-    if (currentBgVideoId !== videoId) {
-        currentBgVideoId = videoId;
-        syncPlayer.loadVideoById({
-            videoId: videoId,
-            startSeconds: mainPlayer.getCurrentTime() || 0
-        });
-        setTimeout(() => {
-            if (syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo();
-            if (syncPlayer && syncPlayer.setVolume) syncPlayer.setVolume(0);
-        }, 100);
-    } else {
-        try {
-            const mainTime = mainPlayer.getCurrentTime();
-            const mainState = mainPlayer.getPlayerState();
-            const syncTime = syncPlayer.getCurrentTime();
-            if (Math.abs(mainTime - syncTime) > 0.3) {
-                syncPlayer.seekTo(mainTime, true);
-            }
-            if (mainState === 1 && syncPlayer.getPlayerState() !== 1) {
-                syncPlayer.playVideo();
-            } else if (mainState !== 1 && syncPlayer.getPlayerState() === 1) {
-                syncPlayer.pauseVideo();
-            }
-            syncPlayer.setVolume(0);
-        } catch(e) { console.warn(e); }
-    }
-}
-setInterval(() => {
-    if (currentPlayingDeck && state[currentPlayingDeck].playing) {
-        syncBackgroundWithDeck(currentPlayingDeck);
-    }
-}, 500);
-
-// ---------- CONTROLES UI ----------
+// Controles UI del DJ
 const transparentCheck = document.getElementById('transparentMode');
 const fiestaCheck = document.getElementById('fiestaMode');
-transparentCheck.addEventListener('change', (e)=>{
-    document.getElementById('djApp').classList.toggle('transparent', e.target.checked);
-});
-fiestaCheck.addEventListener('change', (e)=>{
-    fiestaActive = e.target.checked;
-    if(fiestaActive) startFiestaEffects();
-    else stopFiesta();
-});
+transparentCheck.addEventListener('change', (e)=>{ document.getElementById('djApp').classList.toggle('transparent', e.target.checked); });
+fiestaCheck.addEventListener('change', (e)=>{ fiestaActive = e.target.checked; if(fiestaActive) startFiestaEffects(); else stopFiesta(); });
 const dropdownBtn = document.getElementById('dropdownBtn');
 const dropdownContent = document.getElementById('dropdownContent');
 dropdownBtn.addEventListener('click', ()=>dropdownContent.classList.toggle('show'));
@@ -1175,7 +1132,27 @@ document.addEventListener('click', (e)=>{
     if(!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) dropdownContent.classList.remove('show');
 });
 
-// ---------- FUNCIONES DJ (con actualización de badge) ----------
+// ---------- FUNCIONES DJ ----------
+function updateTrackBadge(deck, title) {
+    const badge = document.getElementById('track-badge');
+    if (deck === 'a' && state.a.playing) {
+        badge.innerHTML = `🎵 Ahora suena (A): ${title.substring(0, 35)} 🎵`;
+    } else if (deck === 'b' && state.b.playing) {
+        badge.innerHTML = `🎵 Ahora suena (B): ${title.substring(0, 35)} 🎵`;
+    } else if (state.a.playing) {
+        badge.innerHTML = `🎵 Ahora suena (A): ${state.a.title.substring(0, 35)} 🎵`;
+    } else if (state.b.playing) {
+        badge.innerHTML = `🎵 Ahora suena (B): ${state.b.title.substring(0, 35)} 🎵`;
+    } else {
+        if (state.a.videoId && !state.a.playing && state.a.title !== 'NO TRACK LOADED') {
+            badge.innerHTML = `⏸ Cargada (A): ${state.a.title.substring(0, 35)} ⏸`;
+        } else if (state.b.videoId && !state.b.playing && state.b.title !== 'NO TRACK LOADED') {
+            badge.innerHTML = `⏸ Cargada (B): ${state.b.title.substring(0, 35)} ⏸`;
+        } else {
+            badge.innerHTML = '🎵 Esperando canción...';
+        }
+    }
+}
 function updateStatus(msg) { document.getElementById('status-bar').textContent = msg; console.log(msg); }
 function showLoader(deck, show) { document.getElementById(`loader-${deck}`).classList.toggle('active', show); }
 function updateEQ(deck, band, val){ eqState[deck][band]=parseInt(val); document.getElementById(`eq-${deck}-${band}-val`).textContent=val+'%'; }
@@ -1235,16 +1212,8 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext){
     if(deck==='a') isLoadingA=true; else isLoadingB=true;
     showLoader(deck,true);
     updateStatus(`Cargando ${title.substring(0,30)}...`);
-    // Actualizar badge con la canción cargada (aunque esté en pausa)
-    if (deck === 'a') {
-        state.a.title = title;
-        state.a.artist = artist;
-        updateTrackBadge('a', title);
-    } else {
-        state.b.title = title;
-        state.b.artist = artist;
-        updateTrackBadge('b', title);
-    }
+    if (deck === 'a') { state.a.title = title; state.a.artist = artist; updateTrackBadge('a', title); }
+    else { state.b.title = title; state.b.artist = artist; updateTrackBadge('b', title); }
     const loadFn=()=>{
         try{
             if(deck==='a' && playerA){ playerA.destroy(); playerA=null; }
@@ -1450,10 +1419,202 @@ function applyShuffleToPlaylist(){
     updateStatus(shuffleEnabled?'Modo aleatorio':'Orden normal');
 }
 
+// ---------- SINCRONIZACIÓN DE FONDO ----------
+function initSyncPlayer() {
+    const container = document.getElementById('syncPlayer');
+    container.innerHTML = '';
+    if(syncPlayer) try{ syncPlayer.destroy(); }catch(e){}
+    syncPlayer = new YT.Player('syncPlayer', {
+        height: '100%', width: '100%',
+        playerVars: { autoplay: 1, mute: 1, controls: 0, modestbranding: 1, playsinline: 1, disablekb: 1 },
+        events: { onReady: () => { if (currentPlayingDeck && state[currentPlayingDeck].playing) syncBackgroundWithDeck(currentPlayingDeck); } }
+    });
+}
+function syncBackgroundWithDeck(deckId) {
+    if (!syncPlayer || !apiReady) return;
+    const mainPlayer = (deckId === 'a') ? playerA : playerB;
+    if (!mainPlayer) return;
+    const videoId = state[deckId].videoId;
+    if (!videoId) return;
+    if (currentBgVideoId !== videoId) {
+        currentBgVideoId = videoId;
+        syncPlayer.loadVideoById({ videoId: videoId, startSeconds: mainPlayer.getCurrentTime() || 0 });
+        setTimeout(() => { if (syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); if (syncPlayer && syncPlayer.setVolume) syncPlayer.setVolume(0); }, 100);
+    } else {
+        try {
+            const mainTime = mainPlayer.getCurrentTime();
+            const mainState = mainPlayer.getPlayerState();
+            const syncTime = syncPlayer.getCurrentTime();
+            if (Math.abs(mainTime - syncTime) > 0.3) syncPlayer.seekTo(mainTime, true);
+            if (mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
+            else if (mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
+            syncPlayer.setVolume(0);
+        } catch(e) { console.warn(e); }
+    }
+}
+setInterval(() => { if (currentPlayingDeck && state[currentPlayingDeck].playing) syncBackgroundWithDeck(currentPlayingDeck); }, 500);
+
+// ================== NUEVO REPRODUCTOR LOCAL (con imagen a pantalla completa) ==================
+let localAudio = null;
+let localAudioCtx = null;
+let localSource = null;
+let localAnalyser = null;
+let localAnimationId = null;
+const audioFileInput = document.getElementById('localAudioFile');
+const imageFileInput = document.getElementById('localImageFile');
+const playLocalBtn = document.getElementById('playLocalBtn');
+const pauseLocalBtn = document.getElementById('pauseLocalBtn');
+const localProgressBar = document.getElementById('localProgressBar');
+const localProgressFill = document.getElementById('localProgressFill');
+const localCurrentTimeSpan = document.getElementById('localCurrentTime');
+const localDurationSpan = document.getElementById('localDuration');
+const localVolumeSlider = document.getElementById('localVolume');
+const localWaveCanvas = document.getElementById('local-wave');
+const personalBgImg = document.getElementById('personalBgImage');
+const personalControls = document.getElementById('personalControls');
+const uploadBtn = document.getElementById('uploadBtn');
+
+// Mostrar controles solo cuando haya audio cargado
+function showControls() {
+    personalControls.style.display = 'flex';
+}
+audioFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        if (localAudio) { localAudio.pause(); if (localAnimationId) cancelAnimationFrame(localAnimationId); }
+        const url = URL.createObjectURL(file);
+        localAudio = new Audio(url);
+        localAudio.volume = localVolumeSlider.value / 100;
+        localAudio.addEventListener('loadedmetadata', () => {
+            localDurationSpan.textContent = formatTime(localAudio.duration);
+            showControls();
+        });
+        localAudio.addEventListener('timeupdate', updateLocalProgress);
+        localAudio.addEventListener('ended', () => {
+            if (localAnimationId) cancelAnimationFrame(localAnimationId);
+            playLocalBtn.textContent = '▶';
+        });
+        setupAudioContext();
+    }
+});
+function setupAudioContext() {
+    if (localAudioCtx) localAudioCtx.close();
+    localAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    localSource = localAudioCtx.createMediaElementSource(localAudio);
+    localAnalyser = localAudioCtx.createAnalyser();
+    localAnalyser.fftSize = 256;
+    localSource.connect(localAnalyser);
+    localAnalyser.connect(localAudioCtx.destination);
+    visualize();
+}
+function visualize() {
+    if (!localAnalyser) return;
+    const bufferLength = localAnalyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const canvas = localWaveCanvas;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    canvas.width = width; canvas.height = height;
+    function draw() {
+        if (!localAudio || localAudio.paused) {
+            ctx.clearRect(0, 0, width, height);
+            localAnimationId = requestAnimationFrame(draw);
+            return;
+        }
+        localAnalyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, width, height);
+        const barWidth = (width / bufferLength) * 2;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+            const barHeight = (dataArray[i] / 255) * height;
+            ctx.fillStyle = `hsl(${i * 2}, 100%, 60%)`;
+            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
+        }
+        localAnimationId = requestAnimationFrame(draw);
+    }
+    draw();
+}
+function updateLocalProgress() {
+    if (localAudio) {
+        const percent = (localAudio.currentTime / localAudio.duration) * 100;
+        localProgressFill.style.width = percent + '%';
+        localCurrentTimeSpan.textContent = formatTime(localAudio.currentTime);
+    }
+}
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+playLocalBtn.addEventListener('click', () => {
+    if (localAudio) {
+        if (localAudioCtx && localAudioCtx.state === 'suspended') localAudioCtx.resume();
+        localAudio.play();
+        playLocalBtn.textContent = '⏸';
+    }
+});
+pauseLocalBtn.addEventListener('click', () => {
+    if (localAudio) {
+        localAudio.pause();
+        playLocalBtn.textContent = '▶';
+    }
+});
+localVolumeSlider.addEventListener('input', (e) => { if (localAudio) localAudio.volume = e.target.value / 100; });
+localProgressBar.addEventListener('click', (e) => {
+    if (localAudio) {
+        const rect = localProgressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        localAudio.currentTime = percent * localAudio.duration;
+    }
+});
+imageFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const url = URL.createObjectURL(file);
+        personalBgImg.src = url;
+        personalBgImg.style.display = 'block';
+    }
+});
+// Botón flotante para cargar archivos
+uploadBtn.addEventListener('click', () => {
+    // Abrir un menú para elegir entre audio o imagen
+    const choice = confirm('Selecciona "Aceptar" para cargar audio, "Cancelar" para cargar imagen');
+    if (choice) {
+        audioFileInput.click();
+    } else {
+        imageFileInput.click();
+    }
+});
+
+// ================== CAMBIO DE MODO (checkbox en dropdown) ==================
+const personalModeCheck = document.getElementById('personalMode');
+const modeDJDiv = document.getElementById('modeDJ');
+const modePersonalDiv = document.getElementById('modePersonal');
+
+personalModeCheck.addEventListener('change', (e) => {
+    const isActive = e.target.checked;
+    if (isActive) {
+        modeDJDiv.classList.add('hide');
+        modePersonalDiv.classList.remove('hide');
+        // Pausar audio del DJ si estaba sonando
+        if (playerA && playerA.pauseVideo) playerA.pauseVideo();
+        if (playerB && playerB.pauseVideo) playerB.pauseVideo();
+    } else {
+        modeDJDiv.classList.remove('hide');
+        modePersonalDiv.classList.add('hide');
+        if (localAudio && !localAudio.paused) {
+            localAudio.pause();
+        }
+    }
+});
+
+// ================== INICIALIZACIÓN ==================
 loadYouTubeAPI();
 drawWaveformAnimated();
 loop();
-setInterval(()=>crossfade(document.getElementById('crossfader').value),100);
+setInterval(() => crossfade(document.getElementById('crossfader').value), 100);
 </script>
 </body>
 </html>

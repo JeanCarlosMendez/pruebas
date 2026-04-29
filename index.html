@@ -47,7 +47,7 @@
           background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
           z-index: -2;
       }
-      /* Capa de efectos fiesta (mismos estilos que antes, resumidos) */
+      /* Capa de efectos fiesta */
       .fiesta-layer { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10; overflow:hidden; }
       .confeti { position:absolute; width:10px; height:20px; background:linear-gradient(135deg,gold,crimson); animation:caer 3s linear forwards; }
       @keyframes caer { 0%{transform:translateY(-100vh) rotate(0deg); opacity:1;} 100%{transform:translateY(100vh) rotate(360deg); opacity:0;} }
@@ -94,7 +94,6 @@
           position: relative;
           overflow: hidden;
       }
-      /* Fondo animado sutil dentro del deck */
       .deck-col::before {
           content: '';
           position: absolute;
@@ -111,11 +110,8 @@
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
       }
-      /* Contenido del deck por encima del fondo */
-      .deck-col > * {
-          position: relative;
-          z-index: 1;
-      }
+      .deck-col > * { position: relative; z-index: 1; }
+      
       /* Vinilo con luces exteriores */
       .vinyl-container {
           position: relative;
@@ -136,7 +132,6 @@
           box-shadow: 0 0 20px #00d4ff;
           transition: box-shadow 0.2s;
       }
-      /* Luces alrededor del vinilo */
       .vinyl-lights {
           position: absolute;
           top: 50%;
@@ -303,7 +298,7 @@
           height: 4px;
           cursor: pointer;
       }
-      /* Columna derecha: reproductor de video (sin controles visibles) */
+      /* Columna derecha: video sin interacción (reproducción automática) */
       .video-col {
           flex: 1;
           background: rgba(0,0,0,0.5);
@@ -354,7 +349,6 @@
           margin-bottom: 10px;
           font-size: 14px;
       }
-      /* Input y botones */
       .playlist-input-row {
           display: flex;
           gap: 8px;
@@ -371,9 +365,7 @@
           font-size: 12px;
           outline: none;
       }
-      .search-input:focus {
-          border-color: #ffaa00;
-      }
+      .search-input:focus { border-color: #ffaa00; }
       .search-btn {
           background: #ffaa00;
           color: #000;
@@ -396,7 +388,7 @@
           padding: 0 10px;
           border-radius: 30px;
       }
-      /* Modales flotantes para playlist y resultados */
+      /* Modales flotantes */
       .modal-overlay {
           position: fixed;
           top: 0;
@@ -533,7 +525,6 @@
           color: #0f0;
           z-index: 1000;
       }
-      /* Scrollbar personalizada */
       ::-webkit-scrollbar { width: 5px; }
       ::-webkit-scrollbar-track { background: #1e1e30; border-radius: 5px; }
       ::-webkit-scrollbar-thumb { background: #00d4ff; border-radius: 5px; }
@@ -660,9 +651,9 @@
         </div>
         <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
       </div>
-      <!-- Columna derecha: video sin interacción -->
+      <!-- Columna derecha: video (reproducción automática silenciada) -->
       <div class="video-col">
-        <iframe id="videoPreview" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <iframe id="videoPreview" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="pointer-events: none;"></iframe>
       </div>
     </div>
     <!-- Fila inferior: playlist y búsqueda -->
@@ -696,7 +687,7 @@
   <div class="status-bar" id="statusBar">🎧 Inicializando...</div>
 </div>
 
-<!-- MODAL DE RESULTADOS DE BÚSQUEDA -->
+<!-- MODAL RESULTADOS BÚSQUEDA -->
 <div id="searchModal" class="modal-overlay">
     <div class="modal-content">
         <span class="close-modal" id="closeModal">&times;</span>
@@ -705,7 +696,7 @@
     </div>
 </div>
 
-<!-- MODAL DE PLAYLIST -->
+<!-- MODAL PLAYLIST -->
 <div id="playlistModal" class="modal-overlay">
     <div class="modal-content">
         <span class="close-modal" id="closePlaylistModal">&times;</span>
@@ -714,7 +705,7 @@
     </div>
 </div>
 
-<!-- MODO PERSONAL (flotante) -->
+<!-- MODO PERSONAL -->
 <div id="modePersonal" class="mode-personal hide">
     <img id="personalBgImage" class="personal-bg-image" style="display: none;">
     <button class="upload-btn" id="uploadBtnLocal">📁</button>
@@ -751,9 +742,6 @@ let fiestaActive = false;
 let intensity = 30;
 let flashInterval = null, confetiInterval, numerosInterval, imagenesInterval, nombreInterval;
 
-let syncInterval = null;
-let lastSyncTime = 0;
-
 const state = {
     playing: false,
     progress: 0,
@@ -764,11 +752,10 @@ const state = {
     videoId: null
 };
 
-// Para efectos visuales
 let energyLevel = 0.2;
 let spectrumBars = [];
 
-// ========== 2. EFECTOS VISUALES DINÁMICOS ==========
+// ========== 2. EFECTOS VISUALES ==========
 function updateEnergyAndSpectrum() {
     if(!state.playing || !currentPlayer) {
         energyLevel = 0.1;
@@ -844,7 +831,7 @@ function stopFiesta(){ fiestaActive=false; stopFiestaIntervals(); document.getEl
 function updateStatus(msg) { let sb=document.getElementById('statusBar'); if(sb) sb.textContent=msg; console.log(msg); }
 function showLoader(show) {}
 
-// ========== 4. REPRODUCTOR YOUTUBE ==========
+// ========== 4. REPRODUCTOR YOUTUBE Y SINCRONIZACIÓN ==========
 window.onYouTubeIframeAPIReady = () => { apiReady=true; initSyncPlayer(); updateStatus('YouTube API lista'); };
 function loadYouTubeAPI() { if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){ let tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } }
 function extractVideoId(url){ let m=url.match(/(?:youtube\.com\/watch\?v=)([^&]+)/)||url.match(/(?:youtu\.be\/)([^?]+)/); return m?m[1]:url; }
@@ -859,29 +846,42 @@ function initSyncPlayer() {
         playerVars: { autoplay: 1, mute: 1, controls: 0, modestbranding: 1, playsinline: 1, disablekb: 1 }
     });
 }
-function syncBackground() {
-    if(!syncPlayer || !apiReady || !state.playing) return;
+
+function forceSyncAll() {
     if(!currentPlayer) return;
-    let vid=state.videoId;
+    let vid = state.videoId;
     if(!vid) return;
-    try {
-        let mainTime = currentPlayer.getCurrentTime();
-        let mainState = currentPlayer.getPlayerState();
-        let syncTime = syncPlayer.getCurrentTime();
-        // Si el video de fondo no coincide o la diferencia es grande, recargar
-        let currentBgSrc = document.getElementById('syncPlayer').querySelector('iframe')?.src;
-        if(!currentBgSrc || !currentBgSrc.includes(vid)) {
-            syncPlayer.loadVideoById({ videoId: vid, startSeconds: mainTime });
-            setTimeout(()=>{ if(syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); syncPlayer.setVolume(0); }, 100);
-        } else if(Math.abs(mainTime - syncTime) > 0.4) {
-            syncPlayer.seekTo(mainTime, true);
+    // Sincronizar fondo
+    if(syncPlayer && apiReady) {
+        try {
+            if(syncPlayer.getVideoData && syncPlayer.getVideoData().video_id !== vid) {
+                syncPlayer.loadVideoById({ videoId: vid, startSeconds: currentPlayer.getCurrentTime() });
+                setTimeout(()=>{ if(syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); syncPlayer.setVolume(0); }, 100);
+            } else {
+                let mainTime = currentPlayer.getCurrentTime();
+                let mainState = currentPlayer.getPlayerState();
+                if(Math.abs(mainTime - syncPlayer.getCurrentTime()) > 0.3)
+                    syncPlayer.seekTo(mainTime, true);
+                if(mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
+                else if(mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
+                syncPlayer.setVolume(0);
+            }
+        } catch(e) { console.warn(e); }
+    }
+    // Sincronizar preview (iframe)
+    let preview = document.getElementById('videoPreview');
+    if(preview && preview.src) {
+        let currentPreviewId = preview.src.split('/embed/')[1]?.split('?')[0];
+        if(currentPreviewId !== vid) {
+            preview.src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`;
+        } else if(state.playing) {
+            // Forzar reproducción mediante postMessage (alternativa)
+            try {
+                preview.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            } catch(e) {}
         }
-        if(mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
-        else if(mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
-        syncPlayer.setVolume(0);
-    } catch(e) { console.warn(e); }
+    }
 }
-setInterval(syncBackground, 400);
 
 function loadSong(videoId, title, artist, autoPlay=true) {
     if(isLoading) { updateStatus('Cargando, espera...'); return; }
@@ -894,17 +894,9 @@ function loadSong(videoId, title, artist, autoPlay=true) {
     document.getElementById('trackArtist').innerText=artist;
     document.getElementById('trackBadge').innerHTML=`🎵 ${title.substring(0,35)} 🎵`;
     
-    // Actualizar preview de video (se reproduce automáticamente)
+    // Actualizar preview con autoplay silenciado
     let previewIframe = document.getElementById('videoPreview');
-    previewIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=0&modestbranding=1&rel=0`;
-    // Forzar reproducción automática después de cargar
-    if(autoPlay) {
-        previewIframe.onload = () => {
-            try {
-                previewIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-            } catch(e) {}
-        };
-    }
+    previewIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`;
     
     if(currentPlayer) { try{ currentPlayer.destroy(); }catch(e){} }
     let playerDiv=document.getElementById('ytPlayer');
@@ -921,39 +913,23 @@ function loadSong(videoId, title, artist, autoPlay=true) {
                 updateStatus(`✅ Listo: ${title.substring(0,30)}`);
                 if(autoPlay) {
                     e.target.playVideo();
-                    // También intentar reproducir el iframe preview
-                    try {
-                        previewIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                    } catch(e2) {}
+                    forceSyncAll();
                 } else {
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
                     document.getElementById('mainDeck').classList.remove('playing');
                 }
-                syncBackground();
             },
             onStateChange: e => {
                 if(e.data===YT.PlayerState.PLAYING){
                     state.playing=true;
                     document.getElementById('playPauseBtn').innerHTML='⏸ PAUSE';
                     document.getElementById('mainDeck').classList.add('playing');
-                    // Sincronizar preview
-                    let previewIframe = document.getElementById('videoPreview');
-                    if(previewIframe && previewIframe.contentWindow) {
-                        try {
-                            previewIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                        } catch(e2) {}
-                    }
-                    syncBackground();
+                    forceSyncAll();
                 } else if(e.data===YT.PlayerState.PAUSED){
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
                     document.getElementById('mainDeck').classList.remove('playing');
-                    try {
-                        let previewIframe = document.getElementById('videoPreview');
-                        if(previewIframe && previewIframe.contentWindow)
-                            previewIframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                    } catch(e2) {}
                 } else if(e.data===YT.PlayerState.ENDED){
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
@@ -965,6 +941,7 @@ function loadSong(videoId, title, artist, autoPlay=true) {
         }
     });
 }
+setInterval(forceSyncAll, 400); // Sincronización periódica
 
 function togglePlay() {
     if(!currentPlayer) return;
@@ -978,6 +955,7 @@ function seekTrack(e){
     let rect=bar.getBoundingClientRect();
     let pct=(e.clientX-rect.left)/rect.width;
     if(currentPlayer && state.duration) currentPlayer.seekTo(pct*state.duration, true);
+    forceSyncAll();
 }
 function setVolume(v){
     state.volume=v;
@@ -1152,7 +1130,7 @@ function drawVinyl(){
 }
 drawVinyl();
 
-// ========== 6. CONTROLES UI Y MODOS ==========
+// ========== 6. CONTROLES UI ==========
 document.getElementById('transparentMode').addEventListener('change',(e)=>{
     document.getElementById('djApp').classList.toggle('transparent', e.target.checked);
 });
@@ -1202,7 +1180,7 @@ personalModeCheck.addEventListener('change',(e)=>{
     }
 });
 
-// ========== 7. REPRODUCTOR LOCAL (sin cambios) ==========
+// ========== 7. REPRODUCTOR LOCAL ==========
 let localAudio=null, localCtx=null, localSource=null, localAnalyser=null, localAnim=null;
 const audioFile=document.getElementById('localAudioFile');
 const imageFile=document.getElementById('localImageFile');

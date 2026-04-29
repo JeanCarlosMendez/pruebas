@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>DJMENDEZ PRO - 24 AÑOS + REPRODUCTOR LOCAL</title>
     <style>
-      /* ========== ESTILOS (igual que antes, solo añado botón reset) ========== */
+      /* ========== ESTILOS (igual que antes, pero reset oculto) ========== */
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
@@ -149,24 +149,16 @@
           left: 20px;
           z-index: 1100;
       }
+      /* Botón reset oculto (solo para emergencia, pero no visible) */
       .reset-btn {
           position: fixed;
-          bottom: 20px;
-          left: 150px;
-          background: rgba(255,50,50,0.8);
-          backdrop-filter: blur(8px);
-          border: 1px solid #ff5555;
-          color: white;
-          padding: 6px 12px;
-          border-radius: 30px;
-          cursor: pointer;
-          font-family: 'Orbitron', monospace;
-          font-size: 11px;
-          z-index: 1100;
-          transition: 0.2s;
+          bottom: 10px;
+          left: 10px;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
       }
-      .reset-btn:hover { background: #ff5555; transform: scale(1.05); }
-      
       .dropdown-btn {
           background: rgba(0,0,0,0.7);
           backdrop-filter: blur(8px);
@@ -872,8 +864,8 @@
     </div>
 </div>
 
-<!-- Botón de emergencia RESET -->
-<button class="reset-btn" id="resetBtn">🔄</button>
+<!-- Botón reset oculto (solo funcional) -->
+<button id="resetBtn" class="reset-btn" style="opacity:0; pointer-events:none;"></button>
 
 <div class="intensity-slider" title="Intensidad de destellos y efectos">
     <input type="range" id="intensitySlider" min="0" max="100" value="30">
@@ -959,11 +951,14 @@
 <div class="youtube-players" style="display:none;"><div id="yt-player-a"></div><div id="yt-player-b"></div></div>
 
 <script>
-// ========== 1. VARIABLES GLOBALES ==========
+// ======================================================================
+// 1. VARIABLES GLOBALES
+// ======================================================================
 let playerA = null, playerB = null;
 let syncPlayer = null;
 let apiReady = false;
 let isLoadingA = false, isLoadingB = false;
+let activeSyncTimer = null;
 
 let activePlaylist = { a: [], b: [] };
 let originalPlaylist = [];
@@ -977,7 +972,9 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// ========== 2. EFECTOS FIESTA (sin cambios) ==========
+// ======================================================================
+// 2. EFECTOS FIESTA (sin cambios)
+// ======================================================================
 let fiestaActive = false;
 let intensity = 30;
 let flashInterval = null;
@@ -1070,7 +1067,7 @@ function startFiestaEffects() {
         const makeImg = () => {
             if(!fiestaActive) return;
             const randomNum = Math.floor(Math.random()*10)+1;
-            const imgUrl = `${randomNum}.png`;  // Ruta sin carpeta
+            const imgUrl = `${randomNum}.png`;
             const img = new Image();
             img.onload = () => {
                 const imgDiv = document.createElement('img');
@@ -1138,7 +1135,9 @@ document.addEventListener('click', (e)=>{
     if(!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) dropdownContent.classList.remove('show');
 });
 
-// ========== 3. FUNCIONES AUXILIARES (DJ) ==========
+// ======================================================================
+// 3. FUNCIONES AUXILIARES (DJ)
+// ======================================================================
 function updateTrackBadge() {
     const badge = document.getElementById('track-badge');
     if (state.a.playing) {
@@ -1184,7 +1183,7 @@ async function loadYouTubePlaylist(){
     const pid=extractPlaylistId(url);
     if(!pid) return updateStatus('ID no válido');
     updateStatus('Cargando playlist...');
-    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA'; // Reemplaza con tu API key
+    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
     const div=document.getElementById('playlist-items');
     div.innerHTML='<div>Cargando...</div>';
     try{
@@ -1207,7 +1206,8 @@ async function loadYouTubePlaylist(){
         if(playlist.length) loadToDeckNoAutoPlay('a', activePlaylist.a[0].videoId, activePlaylist.a[0].title, activePlaylist.a[0].artist);
     }catch(e){ div.innerHTML=`<div>Error: ${e.message}</div>`; updateStatus('Error'); }
 }
-// === CARGA SIN AUTOPLAY Y CON MEJOR MANEJO DE ERRORES ===
+
+// ========== CARGA MEJORADA: nunca interfiere con el otro deck ==========
 function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
     if((deck==='a' && isLoadingA) || (deck==='b' && isLoadingB)) {
         updateStatus(`⏳ Deck ${deck.toUpperCase()} ya está cargando, espera...`);
@@ -1222,9 +1222,19 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
     
     const loadFn=()=>{
         try{
+            // Guardar el estado actual del otro deck (si está sonando)
+            const otherDeck = deck === 'a' ? 'b' : 'a';
+            const wasOtherPlaying = state[otherDeck].playing;
+            
             // Destruir solo el player del deck que se está cambiando
-            if(deck==='a' && playerA){ playerA.destroy(); playerA=null; }
-            if(deck==='b' && playerB){ playerB.destroy(); playerB=null; }
+            if(deck==='a' && playerA){ 
+                playerA.destroy(); 
+                playerA=null; 
+            }
+            if(deck==='b' && playerB){ 
+                playerB.destroy(); 
+                playerB=null; 
+            }
             
             state[deck].title=title.substring(0,45);
             state[deck].artist=artist;
@@ -1247,6 +1257,11 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
                         showLoader(deck,false);
                         if(deck==='a') isLoadingA=false; else isLoadingB=false;
                         updateTrackBadge();
+                        // Si el otro deck estaba sonando, asegurarse de que siga sonando
+                        if(wasOtherPlaying && state[otherDeck].playing === false && (otherDeck === 'a' ? playerA : playerB)) {
+                            const otherPlayer = otherDeck === 'a' ? playerA : playerB;
+                            if(otherPlayer && otherPlayer.playVideo) otherPlayer.playVideo();
+                        }
                     },
                     onStateChange:e=>{
                         if(e.data===YT.PlayerState.PLAYING){
@@ -1281,6 +1296,7 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist) {
     if(apiReady) loadFn();
     else{ let iv=setInterval(()=>{ if(apiReady){ clearInterval(iv); loadFn(); } },100); }
 }
+
 function nextTrackDeck(deck, autoPlay=false){
     if(!activePlaylist[deck].length) return;
     let idx=playlistIndex[deck]+1;
@@ -1316,7 +1332,7 @@ async function searchYouTube(){
     if(!q) return;
     let div=document.getElementById('yt-results');
     div.innerHTML='<div>Buscando...</div>';
-    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA'; // Reemplaza con tu API key
+    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
     try{
         let resp=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`);
         let data=await resp.json();
@@ -1446,8 +1462,12 @@ function applyShuffleToPlaylist(){
     updateStatus(shuffleEnabled?'Modo aleatorio':'Orden normal');
 }
 
-// ========== 4. SINCRONIZACIÓN DE FONDO mejorada con reset ==========
+// ======================================================================
+// 4. SINCRONIZACIÓN DE FONDO (robusta y con reintentos)
+// ======================================================================
 let currentBgVideoId = null;
+let syncRetryCount = 0;
+
 function initSyncPlayer() {
     const container = document.getElementById('syncPlayer');
     container.innerHTML = '';
@@ -1457,8 +1477,10 @@ function initSyncPlayer() {
         playerVars: { autoplay: 1, mute: 1, controls: 0, modestbranding: 1, playsinline: 1, disablekb: 1 }
     });
 }
+
 function syncBackground() {
     if (!syncPlayer || !apiReady) return;
+    // Determinar qué deck está sonando (priorizar el que tiene playing=true)
     let activeDeck = null;
     if (state.a.playing) activeDeck = 'a';
     if (state.b.playing) activeDeck = 'b';
@@ -1469,48 +1491,64 @@ function syncBackground() {
     const videoId = state[activeDeck].videoId;
     if (!videoId) return;
     
-    if (currentBgVideoId !== videoId) {
-        currentBgVideoId = videoId;
-        syncPlayer.loadVideoById({ videoId: videoId, startSeconds: mainPlayer.getCurrentTime() || 0 });
-        setTimeout(() => { if (syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); if (syncPlayer && syncPlayer.setVolume) syncPlayer.setVolume(0); }, 100);
-    } else {
-        try {
+    try {
+        if (currentBgVideoId !== videoId) {
+            currentBgVideoId = videoId;
+            syncRetryCount = 0;
+            syncPlayer.loadVideoById({ videoId: videoId, startSeconds: mainPlayer.getCurrentTime() || 0 });
+            setTimeout(() => { 
+                if (syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); 
+                if (syncPlayer && syncPlayer.setVolume) syncPlayer.setVolume(0); 
+            }, 100);
+        } else {
             const mainTime = mainPlayer.getCurrentTime();
             const mainState = mainPlayer.getPlayerState();
             const syncTime = syncPlayer.getCurrentTime();
-            if (Math.abs(mainTime - syncTime) > 0.5) syncPlayer.seekTo(mainTime, true);
-            if (mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
-            else if (mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
+            if (Math.abs(mainTime - syncTime) > 0.5) {
+                syncPlayer.seekTo(mainTime, true);
+                syncRetryCount = 0;
+            }
+            if (mainState === 1 && syncPlayer.getPlayerState() !== 1) {
+                syncPlayer.playVideo();
+            } else if (mainState !== 1 && syncPlayer.getPlayerState() === 1) {
+                syncPlayer.pauseVideo();
+            }
             syncPlayer.setVolume(0);
-        } catch(e) { console.warn(e); }
+        }
+    } catch(e) {
+        console.warn("Sync error:", e);
+        syncRetryCount++;
+        if (syncRetryCount > 3) {
+            // Si falla muchas veces, forzar recarga del fondo
+            currentBgVideoId = null;
+            syncRetryCount = 0;
+            initSyncPlayer();
+            setTimeout(() => syncBackground(), 500);
+        }
     }
 }
 setInterval(() => { syncBackground(); }, 500);
 
-// ========== BOTÓN DE RESET (emergencia) ==========
+// ======================================================================
+// 5. RESET OCULTO (solo función, no visible)
+// ======================================================================
 function resetSystem() {
     updateStatus('🔄 Reiniciando sincronización...');
-    // Pausar ambos decks
-    if (playerA && playerA.pauseVideo) playerA.pauseVideo();
-    if (playerB && playerB.pauseVideo) playerB.pauseVideo();
-    // Recargar el syncPlayer
+    currentBgVideoId = null;
+    syncRetryCount = 0;
     initSyncPlayer();
-    // Volver a sincronizar con el deck activo
-    setTimeout(() => {
-        if (state.a.playing) {
-            if (playerA && playerA.playVideo) playerA.playVideo();
-            syncBackground();
-        } else if (state.b.playing) {
-            if (playerB && playerB.playVideo) playerB.playVideo();
-            syncBackground();
-        } else {
-            updateStatus('✅ Sistema reiniciado. Sin música activa.');
-        }
-    }, 1000);
+    if (state.a.playing && playerA && playerA.playVideo) playerA.playVideo();
+    if (state.b.playing && playerB && playerB.playVideo) playerB.playVideo();
+    setTimeout(() => syncBackground(), 500);
+    updateStatus('✅ Sistema reiniciado.');
 }
-document.getElementById('resetBtn').addEventListener('click', resetSystem);
+// El botón reset existe pero no es visible, se puede llamar desde consola si es necesario
+// Si quieres que sea accesible solo por desarrollador, lo dejamos así.
+// Si prefieres quitarlo por completo, elimina esta función y el botón del HTML.
 
-// ========== 5. REPRODUCTOR LOCAL ==========
+// ======================================================================
+// 6. REPRODUCTOR LOCAL (sin cambios)
+// ======================================================================
 let localAudio = null;
 let localAudioCtx = null;
 let localSource = null;
@@ -1633,7 +1671,9 @@ uploadBtn.addEventListener('click', () => {
     else imageFileInput.click();
 });
 
-// ========== 6. CAMBIO DE MODO ==========
+// ======================================================================
+// 7. CAMBIO DE MODO
+// ======================================================================
 const personalModeCheck = document.getElementById('personalMode');
 const modeDJDiv = document.getElementById('modeDJ');
 const modePersonalDiv = document.getElementById('modePersonal');
@@ -1651,7 +1691,9 @@ personalModeCheck.addEventListener('change', (e) => {
     }
 });
 
-// ========== 7. INICIALIZACIÓN ==========
+// ======================================================================
+// 8. INICIALIZACIÓN
+// ======================================================================
 loadYouTubeAPI();
 drawWaveformAnimated();
 loop();

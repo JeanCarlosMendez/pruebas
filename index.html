@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>DJMENDEZ PRO - YouTube DJ Controller</title>
+    <title>DJMENDEZ PRO - 24 AÑOS</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
       * {
@@ -33,16 +33,14 @@
           overflow: hidden;
           position: relative;
       }
-      .background-video {
+      .sync-player {
           position: fixed;
           top: 0;
           left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          z-index: -2;
-          opacity: 0.4;
-          filter: blur(8px) brightness(0.5);
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
       }
       .background-overlay {
           position: fixed;
@@ -51,8 +49,73 @@
           width: 100%;
           height: 100%;
           background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
-          z-index: -1;
+          z-index: -2;
       }
+      .fiesta-layer {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 10;
+          overflow: hidden;
+      }
+      .confeti {
+          position: absolute;
+          width: 10px;
+          height: 20px;
+          background: linear-gradient(135deg, gold, crimson);
+          animation: caer 3s linear forwards;
+      }
+      @keyframes caer {
+          0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+      }
+      .numero-24, .nombre-cayendo {
+          position: absolute;
+          font-size: 2rem;
+          font-weight: bold;
+          font-family: 'Orbitron', monospace;
+          color: gold;
+          text-shadow: 0 0 20px orange;
+          white-space: nowrap;
+          animation: caerNombre 4s linear forwards;
+          pointer-events: none;
+          z-index: 20;
+      }
+      @keyframes caerNombre {
+          0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(10deg); opacity: 0; }
+      }
+      .strobe {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: white;
+          opacity: 0;
+          pointer-events: none;
+          z-index: 9;
+      }
+      .imagen-random {
+          position: absolute;
+          max-width: 120px;
+          max-height: 120px;
+          border-radius: 20px;
+          box-shadow: 0 0 20px gold;
+          animation: zoom 4s ease-out forwards;
+          pointer-events: none;
+          z-index: 15;
+      }
+      @keyframes zoom {
+          0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { transform: scale(1.2) rotate(360deg); opacity: 0; }
+      }
+      
       .dj-app {
           max-width: 1400px;
           margin: 0 auto;
@@ -61,10 +124,9 @@
           flex-direction: column;
           gap: 12px;
           position: relative;
-          z-index: 1;
+          z-index: 2;
           transition: var(--transition-opacity);
       }
-      /* Modo transparente activado por el checkbox */
       .dj-app.transparent .left-col,
       .dj-app.transparent .right-col,
       .dj-app.transparent .mixer,
@@ -77,48 +139,84 @@
       .dj-app.transparent .current-track-badge,
       .dj-app.transparent .header {
           opacity: 0.35;
-          transition: var(--transition-opacity);
       }
-      /* El header en transparente se atenúa un poco menos para que el título se vea */
-      .dj-app.transparent .header {
-          opacity: 0.6;
-      }
+      .dj-app.transparent .header { opacity: 0.6; }
       
-      /* Checkbox flotante superior izquierda */
-      .transparent-toggle {
+      .options-dropdown {
           position: fixed;
           top: 20px;
           left: 20px;
           z-index: 1100;
-          background: rgba(0,0,0,0.6);
-          backdrop-filter: blur(5px);
-          padding: 8px 15px;
-          border-radius: 30px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          font-family: 'Share Tech Mono', monospace;
+      }
+      .dropdown-btn {
+          background: rgba(0,0,0,0.7);
+          backdrop-filter: blur(8px);
           border: 1px solid var(--dj-amber);
           color: var(--dj-amber);
+          padding: 8px 16px;
+          border-radius: 30px;
           cursor: pointer;
+          font-family: 'Orbitron', monospace;
+          font-size: 12px;
       }
-      .transparent-toggle input {
+      .dropdown-btn:hover { background: rgba(0,0,0,0.9); }
+      .dropdown-content {
+          display: none;
+          position: absolute;
+          top: 45px;
+          left: 0;
+          background: rgba(0,0,0,0.85);
+          backdrop-filter: blur(10px);
+          border: 1px solid var(--dj-amber);
+          border-radius: 15px;
+          padding: 12px;
+          min-width: 180px;
+          flex-direction: column;
+          gap: 10px;
+          z-index: 1101;
+      }
+      .dropdown-content.show { display: flex; }
+      .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--dj-text);
+          font-size: 12px;
+      }
+      .dropdown-item input {
           width: 18px;
           height: 18px;
           cursor: pointer;
           accent-color: var(--dj-amber);
       }
-      .transparent-toggle label {
+      .intensity-slider {
+          position: fixed;
+          bottom: 10px;
+          left: 10px;
+          z-index: 1100;
+          width: 120px;
+          opacity: 0.4;
+          transition: opacity 0.2s;
+          background: rgba(0,0,0,0.5);
+          border-radius: 20px;
+          padding: 5px 10px;
+      }
+      .intensity-slider:hover { opacity: 0.9; }
+      .intensity-slider input {
+          width: 100%;
           cursor: pointer;
-          user-select: none;
+          background: var(--dj-amber);
+          height: 4px;
+          border-radius: 3px;
+      }
+      .intensity-slider label {
+          font-size: 9px;
+          display: block;
+          text-align: center;
+          color: var(--dj-muted);
       }
       
-      .header {
-          text-align: center;
-          flex-shrink: 0;
-          transition: var(--transition-opacity);
-      }
+      .header { text-align: center; flex-shrink: 0; }
       .header h1 {
           font-family: 'Orbitron', monospace;
           font-size: 26px;
@@ -128,12 +226,7 @@
           text-transform: uppercase;
           text-shadow: 0 0 20px var(--dj-cyan);
       }
-      .header p {
-          font-size: 12px;
-          color: var(--dj-muted);
-          letter-spacing: 2px;
-          margin-top: 4px;
-      }
+      .header p { font-size: 12px; color: var(--dj-muted); letter-spacing: 2px; margin-top: 4px; }
       .main-layout {
           display: grid;
           grid-template-columns: 1fr 420px;
@@ -147,14 +240,12 @@
           gap: 12px;
           overflow-y: auto;
           padding-right: 5px;
-          transition: var(--transition-opacity);
       }
       .decks {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 15px;
           flex-shrink: 0;
-          transition: var(--transition-opacity);
       }
       .deck {
           background: rgba(26,26,46,0.85);
@@ -162,8 +253,6 @@
           border: 1px solid var(--dj-border);
           border-radius: 15px;
           padding: 18px;
-          position: relative;
-          transition: background 0.2s;
       }
       .deck-a { border-top: 3px solid var(--dj-cyan); }
       .deck-b { border-top: 3px solid var(--dj-pink); }
@@ -172,7 +261,6 @@
           font-size: 12px;
           font-weight: 700;
           letter-spacing: 3px;
-          color: var(--dj-muted);
           margin-bottom: 12px;
       }
       .deck-a .deck-label { color: var(--dj-cyan); }
@@ -213,28 +301,22 @@
       @keyframes spin { to { transform: rotate(360deg); } }
       
       .track-info { text-align: center; margin-bottom: 12px; }
-      .track-title { font-size: 14px; font-weight: 700; color: var(--dj-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+      .track-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .track-artist { font-size: 12px; color: var(--dj-muted); margin-top: 3px; }
       .waveform-wrap {
-          position: relative;
           height: 45px;
           background: rgba(18,18,26,0.5);
           border-radius: 8px;
           overflow: hidden;
           margin-bottom: 10px;
       }
-      canvas.wave-canvas {
-          width: 100%;
-          height: 45px;
-          display: block;
-      }
+      canvas.wave-canvas { width: 100%; height: 45px; display: block; }
       .progress-bar {
           background: #1e1e30;
           border-radius: 4px;
           height: 5px;
           margin-bottom: 12px;
           cursor: pointer;
-          position: relative;
       }
       .progress-fill {
           height: 100%;
@@ -269,161 +351,153 @@
       }
       .btn:hover { border-color: var(--dj-cyan); color: var(--dj-cyan); }
       .btn.play { background: var(--dj-green); color: #000; border-color: var(--dj-green); font-weight: 700; }
-      .btn.play:hover { opacity: 0.85; }
       .btn-pink.play { background: var(--dj-pink); border-color: var(--dj-pink); }
       
-      /* Mixer */
+      /* MASTER MIXER - SIN ESPACIOS SOBRANTES, OCUPANDO TODO EL ANCHO */
       .mixer {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
           border: 1px solid var(--dj-border);
-          border-radius: 15px;
-          padding: 18px;
+          border-radius: 12px;
+          padding: 6px 8px;
           flex-shrink: 0;
-          transition: var(--transition-opacity);
       }
       .mixer-title {
           font-family: 'Orbitron', monospace;
-          font-size: 12px;
+          font-size: 10px;
           font-weight: 700;
-          letter-spacing: 2px;
+          letter-spacing: 1px;
           color: var(--dj-amber);
           text-align: center;
-          margin-bottom: 14px;
+          margin-bottom: 4px;
       }
-      .mixer-main { display: flex; flex-direction: column; gap: 20px; }
-      .vol-row {
+      .mixer-row {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: stretch;
+          gap: 6px;  /* espacio mínimo entre grupos */
+          width: 100%;
+      }
+      /* Cada grupo ocupa el mismo ancho */
+      .vol-group, .crossfader-group, .eqs-group {
+          flex: 1;
+          background: rgba(18,18,26,0.5);
+          border-radius: 8px;
+          padding: 4px 6px;
+          text-align: center;
+          min-width: 0; /* permite que se reduzcan */
+      }
+      /* Volúmenes internos en fila */
+      .vol-group {
           display: flex;
           justify-content: space-around;
-          align-items: center;
-          gap: 20px;
-          padding: 10px;
-          background: rgba(18,18,26,0.7);
-          border-radius: 12px;
+          gap: 8px;
       }
-      .vol-control { flex: 1; text-align: center; }
-      .vol-control label { font-size: 11px; color: var(--dj-muted); letter-spacing: 1px; display: block; margin-bottom: 8px; }
-      .vol-control .deck-a-label { color: var(--dj-cyan); }
-      .vol-control .deck-b-label { color: var(--dj-pink); }
+      .vol-control {
+          flex: 1;
+          text-align: center;
+      }
+      .vol-control label {
+          font-size: 8px;
+          display: block;
+          margin-bottom: 2px;
+      }
       .vol-slider {
           width: 100%;
-          max-width: 150px;
-          height: 6px;
+          height: 4px;
           -webkit-appearance: none;
           background: #2a2a40;
           border-radius: 3px;
-          outline: none;
       }
       .vol-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 18px;
-          height: 18px;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
           cursor: pointer;
       }
-      .vol-slider.a-slider::-webkit-slider-thumb { background: var(--dj-cyan); border: 2px solid var(--dj-cyan); }
-      .vol-slider.b-slider::-webkit-slider-thumb { background: var(--dj-pink); border: 2px solid var(--dj-pink); }
+      .vol-slider.a-slider::-webkit-slider-thumb { background: var(--dj-cyan); }
+      .vol-slider.b-slider::-webkit-slider-thumb { background: var(--dj-pink); }
       .vol-value {
-          font-size: 11px;
-          margin-top: 5px;
+          font-size: 7px;
+          margin-top: 2px;
           display: inline-block;
-          padding: 2px 8px;
-          background: rgba(26,26,46,0.8);
-          border-radius: 10px;
+          background: rgba(0,0,0,0.5);
+          padding: 1px 3px;
+          border-radius: 8px;
       }
-      .a-value { color: var(--dj-cyan); }
-      .b-value { color: var(--dj-pink); }
-      
-      .crossfader-row {
-          text-align: center;
-          padding: 10px;
-          background: rgba(18,18,26,0.7);
-          border-radius: 12px;
+      /* Crossfader */
+      .crossfader-group label {
+          font-size: 8px;
+          display: block;
+          margin-bottom: 2px;
       }
-      .crossfader-row label { font-size: 11px; color: var(--dj-muted); letter-spacing: 1px; margin-bottom: 8px; display: block; }
-      .crossfader-container {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          justify-content: center;
-      }
-      .crossfader-container span { font-size: 14px; font-weight: 700; }
-      .crossfader-container span:first-child { color: var(--dj-cyan); }
-      .crossfader-container span:last-child { color: var(--dj-pink); }
       .crossfader {
-          width: 250px;
-          height: 6px;
+          width: 100%;
+          height: 4px;
           -webkit-appearance: none;
           background: linear-gradient(90deg, var(--dj-cyan) 0%, var(--dj-cyan) 50%, var(--dj-pink) 50%, var(--dj-pink) 100%);
           border-radius: 3px;
       }
       .crossfader::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
+          width: 10px;
+          height: 10px;
           background: var(--dj-amber);
-          border: 2px solid #fff;
+          border-radius: 50%;
           cursor: pointer;
-          box-shadow: 0 0 5px var(--dj-amber);
       }
-      
-      .eq-row {
+      .crossfader-labels {
           display: flex;
-          gap: 20px;
-          justify-content: center;
-          padding: 10px;
-          background: rgba(18,18,26,0.7);
-          border-radius: 12px;
-          flex-wrap: wrap;
+          justify-content: space-between;
+          font-size: 7px;
+          margin-top: 2px;
+          padding: 0 2px;
       }
-      .eq-deck {
+      /* EQ grupos */
+      .eqs-group {
+          display: flex;
+          gap: 6px;
+          justify-content: space-around;
+      }
+      .eq-mini {
           flex: 1;
-          min-width: 200px;
-          padding: 12px;
-          background: rgba(26,26,46,0.8);
-          border-radius: 10px;
-          border-left: 3px solid;
-      }
-      .eq-deck-a { border-left-color: var(--dj-cyan); }
-      .eq-deck-b { border-left-color: var(--dj-pink); }
-      .eq-deck-title {
-          font-size: 11px;
-          font-weight: 700;
           text-align: center;
-          margin-bottom: 12px;
       }
-      .eq-deck-a .eq-deck-title { color: var(--dj-cyan); }
-      .eq-deck-b .eq-deck-title { color: var(--dj-pink); }
-      .eq-band { margin-bottom: 12px; }
-      .eq-band label {
-          font-size: 10px;
+      .eq-mini .eq-title {
+          font-size: 8px;
+          font-weight: bold;
+          margin-bottom: 3px;
+      }
+      .eq-mini-a .eq-title { color: var(--dj-cyan); }
+      .eq-mini-b .eq-title { color: var(--dj-pink); }
+      .eq-band-mini {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 3px;
+      }
+      .eq-band-mini label {
+          font-size: 6px;
           color: var(--dj-muted);
-          display: block;
-          margin-bottom: 5px;
-          text-align: center;
       }
-      .eq-band input {
+      .eq-band-mini input {
           width: 100%;
-          height: 5px;
+          height: 3px;
           -webkit-appearance: none;
           background: #2a2a40;
           border-radius: 3px;
       }
-      .eq-band input::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
+      .eq-band-mini input::-webkit-slider-thumb {
+          width: 8px;
+          height: 8px;
           background: var(--dj-amber);
+          border-radius: 50%;
           cursor: pointer;
-          border: 1px solid #fff;
       }
       .eq-value {
-          font-size: 9px;
-          text-align: center;
-          margin-top: 3px;
-          color: var(--dj-muted);
+          font-size: 6px;
+          margin-top: 1px;
       }
       
       .right-col {
@@ -431,22 +505,17 @@
           flex-direction: column;
           gap: 12px;
           overflow-y: auto;
-          transition: var(--transition-opacity);
       }
-      
       .playlist-panel {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
           border: 1px solid var(--dj-amber);
           border-radius: 15px;
           padding: 15px;
-          margin-bottom: 12px;
-          transition: var(--transition-opacity);
       }
       .playlist-title {
           font-family: 'Orbitron', monospace;
           font-size: 12px;
-          font-weight: 700;
           letter-spacing: 2px;
           color: var(--dj-amber);
           text-align: center;
@@ -466,11 +535,9 @@
           color: var(--dj-text);
           border-radius: 8px;
           padding: 10px 12px;
-          font-family: 'Share Tech Mono', monospace;
           font-size: 11px;
           outline: none;
       }
-      .playlist-url-input:focus { border-color: var(--dj-amber); }
       .btn-load-playlist {
           background: var(--dj-amber);
           color: #000;
@@ -489,14 +556,6 @@
           border-radius: 30px;
           font-size: 11px;
       }
-      .shuffle-control input {
-          width: 16px;
-          height: 16px;
-          cursor: pointer;
-          accent-color: var(--dj-pink);
-      }
-      .shuffle-control label { cursor: pointer; color: var(--dj-text); }
-      
       .playlist-items {
           max-height: 200px;
           overflow-y: auto;
@@ -512,11 +571,7 @@
           justify-content: space-between;
           align-items: center;
       }
-      .playlist-item-title {
-          font-size: 11px;
-          color: var(--dj-text);
-          flex: 1;
-      }
+      .playlist-item-title { font-size: 11px; flex: 1; }
       .playlist-item button {
           background: transparent;
           border: 1px solid var(--dj-amber);
@@ -533,7 +588,6 @@
           border: 1px solid var(--dj-border);
           border-radius: 15px;
           padding: 15px;
-          transition: var(--transition-opacity);
       }
       .yt-title {
           font-family: 'Orbitron', monospace;
@@ -556,11 +610,9 @@
           color: var(--dj-text);
           border-radius: 8px;
           padding: 10px 12px;
-          font-family: 'Share Tech Mono', monospace;
           font-size: 12px;
           outline: none;
       }
-      .yt-search-input:focus { border-color: #FF0000; }
       .btn-yt-search {
           background: #FF0000;
           color: #fff;
@@ -568,8 +620,6 @@
           border-radius: 8px;
           padding: 10px 20px;
           cursor: pointer;
-          font-family: 'Orbitron', monospace;
-          font-size: 12px;
           font-weight: 700;
       }
       .results-list {
@@ -586,10 +636,9 @@
           display: flex;
           gap: 12px;
       }
-      .result-item:hover { background: rgba(26,26,46,0.9); border-color: #FF0000; }
       .result-thumb { width: 80px; height: 60px; border-radius: 6px; object-fit: cover; }
       .result-info { flex: 1; }
-      .result-title { font-size: 12px; font-weight: 700; color: var(--dj-text); margin-bottom: 4px; }
+      .result-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
       .result-channel { font-size: 10px; color: var(--dj-muted); }
       .load-buttons { display: flex; gap: 8px; margin-top: 8px; }
       .btn-load-yt {
@@ -637,16 +686,12 @@
           padding: 18px;
           display: none;
           z-index: 999;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-          transition: var(--transition-opacity);
       }
       .quick-panel.show { display: block; }
       .quick-panel .links-title {
           font-family: 'Orbitron', monospace;
           font-size: 13px;
-          font-weight: 700;
           letter-spacing: 2px;
-          color: var(--dj-text);
           text-align: center;
           margin-bottom: 12px;
       }
@@ -662,32 +707,20 @@
           color: var(--dj-text);
           border-radius: 8px;
           padding: 10px;
-          font-family: 'Share Tech Mono', monospace;
           font-size: 12px;
           outline: none;
       }
-      .quick-panel .link-input:focus { border-color: var(--dj-cyan); }
       
-      .youtube-players {
-          position: fixed;
-          bottom: -100px;
-          left: -100px;
-          width: 1px;
-          height: 1px;
-          opacity: 0;
-          pointer-events: none;
-      }
       .status-bar {
           position: fixed;
           bottom: 10px;
-          left: 10px;
+          right: 10px;
           background: rgba(0,0,0,0.7);
           padding: 5px 10px;
           border-radius: 5px;
           font-size: 10px;
           color: #00ff88;
           z-index: 1000;
-          transition: var(--transition-opacity);
       }
       .current-track-badge {
           position: fixed;
@@ -700,38 +733,50 @@
           font-size: 10px;
           color: var(--dj-amber);
           z-index: 1000;
-          font-family: 'Orbitron', monospace;
-          transition: var(--transition-opacity);
       }
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: var(--dj-surface); border-radius: 4px; }
-      ::-webkit-scrollbar-thumb { background: var(--dj-border); border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: var(--dj-cyan); }
+      /* Responsive: si la pantalla es demasiado pequeña, que se envuelva pero sin perder la distribución */
+      @media (max-width: 1000px) {
+          .mixer-row { flex-wrap: wrap; gap: 5px; }
+          .vol-group, .crossfader-group, .eqs-group { flex: 1 1 auto; min-width: 120px; }
+      }
     </style>
 </head>
 <body>
 
-<video id="bg-video" class="background-video" autoplay loop muted playsinline></video>
+<div class="sync-player" id="syncPlayer"></div>
 <div class="background-overlay"></div>
 
-<!-- Checkbox para modo transparente - esquina superior izquierda -->
-<div class="transparent-toggle">
-    <input type="checkbox" id="transparentModeCheckbox">
-    <label for="transparentModeCheckbox">🎨 Modo transparente</label>
+<div class="options-dropdown">
+    <button class="dropdown-btn" id="dropdownBtn">⚙️ OPCIONES</button>
+    <div class="dropdown-content" id="dropdownContent">
+        <label class="dropdown-item">
+            <input type="checkbox" id="transparentMode"> 🎨 Modo Transparente
+        </label>
+        <label class="dropdown-item">
+            <input type="checkbox" id="fiestaMode"> 🎉 Modo Fiesta 24 años
+        </label>
+    </div>
 </div>
+
+<div class="intensity-slider" title="Intensidad de destellos y efectos">
+    <input type="range" id="intensitySlider" min="0" max="100" value="30">
+    <label>✨ INTENSIDAD ✨</label>
+</div>
+
+<div id="fiestaLayer" class="fiesta-layer"></div>
+<div class="strobe" id="strobe"></div>
 
 <div class="current-track-badge" id="track-badge">🎵 Esperando canción...</div>
 
 <div class="dj-app" id="djApp">
   <div class="header">
     <h1>DJMENDEZ PRO</h1>
-    <p>🎂 MI CUMPLEAÑOS 🎂 • DJ CONTROLLER</p>
+    <p>🎂 24 AÑOS - JEAN CARLOS MENDEZ 🎂</p>
   </div>
 
   <div class="main-layout">
     <div class="left-col">
       <div class="decks">
-        <!-- DECK A -->
         <div class="deck deck-a">
           <div class="deck-label">DECK A</div>
           <div class="vinyl-wrap">
@@ -740,16 +785,9 @@
             </div>
             <div id="loader-a" class="loader-overlay"><div class="spinner"></div></div>
           </div>
-          <div class="track-info">
-            <div class="track-title" id="title-a">NO TRACK LOADED</div>
-            <div class="track-artist" id="artist-a">— —</div>
-          </div>
-          <div class="waveform-wrap">
-            <canvas id="wave-a" class="wave-canvas" width="300" height="45"></canvas>
-          </div>
-          <div class="progress-bar" onclick="seekDeck('a',event)">
-            <div class="progress-fill" id="prog-a" style="width:0%"></div>
-          </div>
+          <div class="track-info"><div class="track-title" id="title-a">NO TRACK LOADED</div><div class="track-artist" id="artist-a">— —</div></div>
+          <div class="waveform-wrap"><canvas id="wave-a" class="wave-canvas" width="300" height="45"></canvas></div>
+          <div class="progress-bar" onclick="seekDeck('a',event)"><div class="progress-fill" id="prog-a" style="width:0%"></div></div>
           <div class="time-row"><span id="cur-a">0:00</span><span id="rem-a">-0:00</span></div>
           <div class="deck-controls">
             <button class="btn" onclick="prevTrackDeck('a')">|◀ PREV</button>
@@ -758,7 +796,6 @@
             <button class="btn" onclick="nextTrackDeck('a')">▶ NEXT</button>
           </div>
         </div>
-        <!-- DECK B -->
         <div class="deck deck-b">
           <div class="deck-label">DECK B</div>
           <div class="vinyl-wrap">
@@ -767,16 +804,9 @@
             </div>
             <div id="loader-b" class="loader-overlay"><div class="spinner"></div></div>
           </div>
-          <div class="track-info">
-            <div class="track-title" id="title-b">NO TRACK LOADED</div>
-            <div class="track-artist" id="artist-b">— —</div>
-          </div>
-          <div class="waveform-wrap">
-            <canvas id="wave-b" class="wave-canvas" width="300" height="45"></canvas>
-          </div>
-          <div class="progress-bar" onclick="seekDeck('b',event)">
-            <div class="progress-fill" id="prog-b" style="width:0%"></div>
-          </div>
+          <div class="track-info"><div class="track-title" id="title-b">NO TRACK LOADED</div><div class="track-artist" id="artist-b">— —</div></div>
+          <div class="waveform-wrap"><canvas id="wave-b" class="wave-canvas" width="300" height="45"></canvas></div>
+          <div class="progress-bar" onclick="seekDeck('b',event)"><div class="progress-fill" id="prog-b" style="width:0%"></div></div>
           <div class="time-row"><span id="cur-b">0:00</span><span id="rem-b">-0:00</span></div>
           <div class="deck-controls">
             <button class="btn" onclick="prevTrackDeck('b')">|◀ PREV</button>
@@ -787,42 +817,41 @@
         </div>
       </div>
 
-      <!-- MIXER -->
+      <!-- MASTER MIXER - OCUPA TODO EL ANCHO SIN ESPACIOS -->
       <div class="mixer">
         <div class="mixer-title">🎛️ MASTER MIXER 🎛️</div>
-        <div class="mixer-main">
-          <div class="vol-row">
+        <div class="mixer-row">
+          <div class="vol-group">
             <div class="vol-control">
-              <label class="deck-a-label">🔊 VOLUMEN A</label>
+              <label class="deck-a-label">VOL A</label>
               <input type="range" class="vol-slider a-slider" id="vol-a-slider" min="0" max="100" value="80" oninput="setVol('a', this.value)">
-              <div><span class="vol-value a-value" id="vol-a-val">80%</span></div>
+              <div><span class="vol-value" id="vol-a-val">80%</span></div>
             </div>
             <div class="vol-control">
-              <label class="deck-b-label">🔊 VOLUMEN B</label>
+              <label class="deck-b-label">VOL B</label>
               <input type="range" class="vol-slider b-slider" id="vol-b-slider" min="0" max="100" value="80" oninput="setVol('b', this.value)">
-              <div><span class="vol-value b-value" id="vol-b-val">80%</span></div>
+              <div><span class="vol-value" id="vol-b-val">80%</span></div>
             </div>
           </div>
-          <div class="crossfader-row">
-            <label>🎚️ CROSSFADER</label>
-            <div class="crossfader-container">
-              <span>A</span>
-              <input type="range" class="crossfader" id="crossfader" min="0" max="100" value="50" oninput="crossfade(this.value)">
-              <span>B</span>
+          <div class="crossfader-group">
+            <label>🎚️ X-FADER</label>
+            <input type="range" class="crossfader" id="crossfader" min="0" max="100" value="50" oninput="crossfade(this.value)">
+            <div class="crossfader-labels">
+              <span style="color:var(--dj-cyan)">A</span><span style="color:var(--dj-pink)">B</span>
             </div>
           </div>
-          <div class="eq-row">
-            <div class="eq-deck eq-deck-a">
-              <div class="eq-deck-title">🎚️ EQ DECK A</div>
-              <div class="eq-band"><label>🔊 HI</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><div class="eq-value" id="eq-a-hi-val">75%</div></div>
-              <div class="eq-band"><label>🎵 MID</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><div class="eq-value" id="eq-a-mid-val">75%</div></div>
-              <div class="eq-band"><label>🔊 LOW</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><div class="eq-value" id="eq-a-low-val">75%</div></div>
+          <div class="eqs-group">
+            <div class="eq-mini eq-mini-a">
+              <div class="eq-title">EQ A</div>
+              <div class="eq-band-mini"><label>HI</label><input type="range" id="eq-a-hi" min="0" max="100" value="75" oninput="updateEQ('a','hi',this.value)"><span class="eq-value" id="eq-a-hi-val">75%</span></div>
+              <div class="eq-band-mini"><label>MID</label><input type="range" id="eq-a-mid" min="0" max="100" value="75" oninput="updateEQ('a','mid',this.value)"><span class="eq-value" id="eq-a-mid-val">75%</span></div>
+              <div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-a-low" min="0" max="100" value="75" oninput="updateEQ('a','low',this.value)"><span class="eq-value" id="eq-a-low-val">75%</span></div>
             </div>
-            <div class="eq-deck eq-deck-b">
-              <div class="eq-deck-title">🎚️ EQ DECK B</div>
-              <div class="eq-band"><label>🔊 HI</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><div class="eq-value" id="eq-b-hi-val">75%</div></div>
-              <div class="eq-band"><label>🎵 MID</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><div class="eq-value" id="eq-b-mid-val">75%</div></div>
-              <div class="eq-band"><label>🔊 LOW</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><div class="eq-value" id="eq-b-low-val">75%</div></div>
+            <div class="eq-mini eq-mini-b">
+              <div class="eq-title">EQ B</div>
+              <div class="eq-band-mini"><label>HI</label><input type="range" id="eq-b-hi" min="0" max="100" value="75" oninput="updateEQ('b','hi',this.value)"><span class="eq-value" id="eq-b-hi-val">75%</span></div>
+              <div class="eq-band-mini"><label>MID</label><input type="range" id="eq-b-mid" min="0" max="100" value="75" oninput="updateEQ('b','mid',this.value)"><span class="eq-value" id="eq-b-mid-val">75%</span></div>
+              <div class="eq-band-mini"><label>LOW</label><input type="range" id="eq-b-low" min="0" max="100" value="75" oninput="updateEQ('b','low',this.value)"><span class="eq-value" id="eq-b-low-val">75%</span></div>
             </div>
           </div>
         </div>
@@ -831,60 +860,37 @@
 
     <div class="right-col">
       <div class="playlist-panel">
-        <div class="playlist-title">🎵 CARGAR PLAYLIST DE YOUTUBE 🎵</div>
+        <div class="playlist-title">🎵 CARGAR PLAYLIST</div>
         <div class="playlist-input-row">
-          <input type="text" class="playlist-url-input" id="playlist-url" placeholder="Pega la URL de tu playlist de YouTube" />
+          <input type="text" class="playlist-url-input" id="playlist-url" placeholder="URL de playlist YouTube" />
           <button class="btn-load-playlist" onclick="loadYouTubePlaylist()">CARGAR</button>
-          <div class="shuffle-control">
-            <input type="checkbox" id="shuffle-checkbox">
-            <label for="shuffle-checkbox">🔀 SHUFFLE</label>
-          </div>
+          <div class="shuffle-control"><input type="checkbox" id="shuffle-checkbox"><label>🔀 SHUFFLE</label></div>
         </div>
-        <div id="playlist-items" class="playlist-items">
-          <div style="text-align:center;color:var(--dj-muted);padding:20px">Pega una URL de playlist de YouTube para tu cumpleaños 🎂</div>
-        </div>
+        <div id="playlist-items" class="playlist-items"><div style="text-align:center;padding:20px">Pega una URL de playlist</div></div>
       </div>
-
       <div class="yt-panel">
         <div class="yt-title">🎵 BUSCAR CANCIONES</div>
-        <div class="yt-search-row">
-          <input type="text" class="yt-search-input" id="yt-search" placeholder="Buscar canción, artista..." onkeypress="if(event.key==='Enter') searchYouTube()">
-          <button class="btn-yt-search" onclick="searchYouTube()">BUSCAR</button>
-        </div>
-        <div id="yt-results" class="results-list">
-          <div style="text-align:center;color:var(--dj-muted);padding:20px">Busca canciones para cargar en los decks</div>
-        </div>
+        <div class="yt-search-row"><input type="text" class="yt-search-input" id="yt-search" placeholder="Buscar..." onkeypress="if(event.key==='Enter') searchYouTube()"><button class="btn-yt-search" onclick="searchYouTube()">BUSCAR</button></div>
+        <div id="yt-results" class="results-list"><div style="text-align:center;padding:20px">Busca canciones</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="floating-btn">
-  <button class="quick-toggle" onclick="toggleQuickPanel()">⚡ CARGA RÁPIDA</button>
-</div>
+<div class="floating-btn"><button class="quick-toggle" onclick="toggleQuickPanel()">⚡ CARGA RÁPIDA</button></div>
 <div class="quick-panel" id="quickPanel">
   <div class="links-title">CARGAR TRACK RÁPIDO</div>
-  <div class="link-row">
-    <input type="text" class="link-input" id="track-name-a" placeholder="URL o ID de video para Deck A..." />
-    <button class="btn" style="border-color:var(--dj-cyan);color:var(--dj-cyan)" onclick="quickLoadTrack('a')">LOAD A</button>
-  </div>
-  <div class="link-row">
-    <input type="text" class="link-input" id="track-name-b" placeholder="URL o ID de video para Deck B..." />
-    <button class="btn" style="border-color:var(--dj-pink);color:var(--dj-pink)" onclick="quickLoadTrack('b')">LOAD B</button>
-  </div>
+  <div class="link-row"><input type="text" class="link-input" id="track-name-a" placeholder="URL o ID Deck A" /><button class="btn" style="border-color:var(--dj-cyan)" onclick="quickLoadTrack('a')">LOAD A</button></div>
+  <div class="link-row"><input type="text" class="link-input" id="track-name-b" placeholder="URL o ID Deck B" /><button class="btn" style="border-color:var(--dj-pink)" onclick="quickLoadTrack('b')">LOAD B</button></div>
 </div>
 
-<div class="youtube-players">
-  <div id="yt-player-a"></div>
-  <div id="yt-player-b"></div>
-</div>
+<div class="youtube-players" style="display:none;"><div id="yt-player-a"></div><div id="yt-player-b"></div></div>
 <div class="status-bar" id="status-bar">🎧 Inicializando...</div>
 
 <script>
-// ------------------------------------------------------------------
-//  ESTADO GLOBAL
-// ------------------------------------------------------------------
+// ---------- ESTADO GLOBAL ----------
 let playerA = null, playerB = null;
+let syncPlayer = null;
 let currentBgVideoId = null;
 let apiReady = false;
 let isLoadingA = false, isLoadingB = false;
@@ -898,517 +904,484 @@ let shuffleEnabled = false;
 let eqState = { a: { hi: 75, mid: 75, low: 75 }, b: { hi: 75, mid: 75, low: 75 } };
 
 const state = {
-  a: { playing: false, progress: 0, duration: 0, bpm: 128, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null },
-  b: { playing: false, progress: 0, duration: 0, bpm: 132, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
+  a: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null },
+  b: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// ------------------------------------------------------------------
-//  MODO TRANSPARENTE (checkbox)
-// ------------------------------------------------------------------
-const transparentCheckbox = document.getElementById('transparentModeCheckbox');
-const djApp = document.getElementById('djApp');
-transparentCheckbox.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        djApp.classList.add('transparent');
-    } else {
-        djApp.classList.remove('transparent');
+// ---------- EFECTOS DE CUMPLEAÑOS CON NOMBRE CAYENDO ----------
+let fiestaActive = false;
+let intensity = 30;
+let flashInterval = null;
+let confetiInterval, numerosInterval, imagenesInterval, nombreInterval;
+
+function getStrobeParams(intensityVal) {
+    let freq = Math.max(50, 500 - (intensityVal * 4.5));
+    let maxOpacity = (intensityVal / 100) * 0.4;
+    return { interval: freq, opacity: maxOpacity };
+}
+function updateStrobe() {
+    if (!fiestaActive) { if(flashInterval){ clearInterval(flashInterval); flashInterval=null; } return; }
+    if(flashInterval) clearInterval(flashInterval);
+    const { interval, opacity } = getStrobeParams(intensity);
+    if(interval===Infinity || opacity===0) return;
+    const strobeDiv = document.getElementById('strobe');
+    let state = false;
+    flashInterval = setInterval(()=>{
+        if(!fiestaActive) return;
+        if(state) strobeDiv.style.opacity = '0';
+        else strobeDiv.style.opacity = opacity;
+        state = !state;
+    }, interval);
+}
+function getDelayFromIntensity(baseDelay) {
+    let factor = Math.max(0.3, Math.min(2.5, 2.5 - (intensity / 50)));
+    return baseDelay * factor;
+}
+function startFiestaEffects() {
+    if(!fiestaActive) return;
+    stopFiestaIntervals();
+    updateStrobe();
+    const layer = document.getElementById('fiestaLayer');
+    
+    function schedule() {
+        if(!fiestaActive) return;
+        // Confeti
+        if(confetiInterval) clearTimeout(confetiInterval);
+        const confetiDelay = getDelayFromIntensity(400);
+        const makeConfeti = () => {
+            if(!fiestaActive) return;
+            for(let i=0;i<3;i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confeti';
+                conf.style.left = Math.random() * 100 + '%';
+                conf.style.background = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                conf.style.width = (5+Math.random()*10)+'px';
+                conf.style.height = (10+Math.random()*15)+'px';
+                conf.style.animationDuration = (2+Math.random()*2)+'s';
+                layer.appendChild(conf);
+                setTimeout(()=>conf.remove(),4000);
+            }
+            confetiInterval = setTimeout(makeConfeti, confetiDelay);
+        };
+        makeConfeti();
+        
+        // Números 24
+        if(numerosInterval) clearTimeout(numerosInterval);
+        const numDelay = getDelayFromIntensity(2500);
+        const makeNum = () => {
+            if(!fiestaActive) return;
+            const num = document.createElement('div');
+            num.className = 'numero-24';
+            num.textContent = '24';
+            num.style.left = Math.random()*80+10+'%';
+            num.style.top = Math.random()*80+10+'%';
+            num.style.fontSize = (20+Math.random()*30)+'px';
+            layer.appendChild(num);
+            setTimeout(()=>num.remove(),3000);
+            numerosInterval = setTimeout(makeNum, numDelay);
+        };
+        makeNum();
+        
+        // NOMBRE "Jean Carlos Mendez" cayendo
+        if(nombreInterval) clearTimeout(nombreInterval);
+        const nombreDelay = getDelayFromIntensity(3500);
+        const makeNombre = () => {
+            if(!fiestaActive) return;
+            const nombreDiv = document.createElement('div');
+            nombreDiv.className = 'nombre-cayendo';
+            nombreDiv.textContent = 'Jean Carlos Mendez';
+            nombreDiv.style.left = Math.random() * 70 + 15 + '%';
+            nombreDiv.style.fontSize = (18 + Math.random() * 20) + 'px';
+            nombreDiv.style.color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+            nombreDiv.style.textShadow = `0 0 10px ${Math.random() > 0.5 ? 'cyan' : 'magenta'}`;
+            layer.appendChild(nombreDiv);
+            setTimeout(()=>nombreDiv.remove(), 4500);
+            nombreInterval = setTimeout(makeNombre, nombreDelay);
+        };
+        makeNombre();
+        
+        // Imágenes aleatorias
+        if(imagenesInterval) clearTimeout(imagenesInterval);
+        const imgDelay = getDelayFromIntensity(4000);
+        const makeImg = () => {
+            if(!fiestaActive) return;
+            const randomNum = Math.floor(Math.random()*10)+1;
+            const imgUrl = `imagenes/${randomNum}.jpg`;
+            const img = new Image();
+            img.onload = () => {
+                const imgDiv = document.createElement('img');
+                imgDiv.src = imgUrl;
+                imgDiv.className = 'imagen-random';
+                imgDiv.style.left = Math.random()*80+'%';
+                imgDiv.style.top = Math.random()*80+'%';
+                imgDiv.style.width = '100px';
+                layer.appendChild(imgDiv);
+                setTimeout(()=>imgDiv.remove(),4000);
+            };
+            img.onerror = () => {
+                const emoji = document.createElement('div');
+                emoji.className = 'numero-24';
+                emoji.style.fontSize = '40px';
+                emoji.textContent = ['🎂','🎈','🎉','🥳','🎁'][Math.floor(Math.random()*5)];
+                emoji.style.left = Math.random()*80+'%';
+                emoji.style.top = Math.random()*80+'%';
+                layer.appendChild(emoji);
+                setTimeout(()=>emoji.remove(),3000);
+            };
+            img.src = imgUrl;
+            imagenesInterval = setTimeout(makeImg, imgDelay);
+        };
+        makeImg();
+    }
+    schedule();
+}
+function stopFiestaIntervals() {
+    if(confetiInterval) clearTimeout(confetiInterval);
+    if(numerosInterval) clearTimeout(numerosInterval);
+    if(imagenesInterval) clearTimeout(imagenesInterval);
+    if(nombreInterval) clearTimeout(nombreInterval);
+    if(flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+}
+function stopFiesta() {
+    fiestaActive = false;
+    stopFiestaIntervals();
+    const layer = document.getElementById('fiestaLayer');
+    const strobeDiv = document.getElementById('strobe');
+    strobeDiv.style.opacity = '0';
+    layer.innerHTML = '';
+}
+const intensitySlider = document.getElementById('intensitySlider');
+intensitySlider.addEventListener('input', (e)=>{
+    intensity = parseInt(e.target.value);
+    if(fiestaActive){
+        updateStrobe();
+        if(confetiInterval) clearTimeout(confetiInterval);
+        if(numerosInterval) clearTimeout(numerosInterval);
+        if(imagenesInterval) clearTimeout(imagenesInterval);
+        if(nombreInterval) clearTimeout(nombreInterval);
+        startFiestaEffects();
     }
 });
 
-// ------------------------------------------------------------------
-//  FUNCIONES AUXILIARES
-// ------------------------------------------------------------------
-function updateStatus(msg) {
-  const statusDiv = document.getElementById('status-bar');
-  if(statusDiv) statusDiv.textContent = msg;
-  console.log(msg);
+// ---------- SINCRONIZACIÓN DE FONDO ----------
+function initSyncPlayer() {
+    const container = document.getElementById('syncPlayer');
+    container.innerHTML = '';
+    if(syncPlayer) try{ syncPlayer.destroy(); }catch(e){}
+    syncPlayer = new YT.Player('syncPlayer', {
+        height:'1', width:'1',
+        playerVars:{ autoplay:0, controls:0, modestbranding:1, playsinline:1 }
+    });
 }
-
-function showLoader(deck, show) {
-  const loader = document.getElementById(`loader-${deck}`);
-  if(loader) loader.classList.toggle('active', show);
-}
-
-function updateBackgroundVideo(videoId, title) {
-  if(!videoId) return;
-  if(currentBgVideoId === videoId) return;
-  currentBgVideoId = videoId;
-  const existingIframe = document.querySelector('.hidden-bg-iframe');
-  if(existingIframe) existingIframe.remove();
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0`;
-  const iframe = document.createElement('iframe');
-  iframe.className = 'hidden-bg-iframe';
-  iframe.src = embedUrl;
-  iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:-3;pointer-events:none;border:none;object-fit:cover';
-  iframe.allow = 'autoplay';
-  document.body.appendChild(iframe);
-  document.getElementById('track-badge').innerHTML = `🎵 Ahora suena: ${title.substring(0, 35)} 🎵`;
-  updateStatus(`🎬 Video de fondo: ${title.substring(0, 30)}`);
-}
-
-function updateEQ(deck, band, value) {
-  eqState[deck][band] = parseInt(value);
-  document.getElementById(`eq-${deck}-${band}-val`).textContent = value + '%';
-}
-
-// ------------------------------------------------------------------
-//  API DE YOUTUBE
-// ------------------------------------------------------------------
-window.onYouTubeIframeAPIReady = () => {
-  apiReady = true;
-  updateStatus('✅ YouTube API lista');
-};
-
-function loadYouTubeAPI() {
-  if(document.querySelector('script[src*="youtube.com/iframe_api"]')) return;
-  updateStatus('📡 Cargando YouTube API...');
-  const tag = document.createElement('script');
-  tag.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(tag);
-}
-
-// ------------------------------------------------------------------
-//  UTILIDADES
-// ------------------------------------------------------------------
-function extractVideoId(url) {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=)([^&]+)/,
-    /(?:youtu\.be\/)([^?]+)/,
-    /(?:youtube\.com\/embed\/)([^?]+)/
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return url;
-}
-
-function extractPlaylistId(url) {
-  const match = url.match(/[&?]list=([^&]+)/);
-  return match ? match[1] : null;
-}
-
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function applyShuffleToPlaylist() {
-  if(!shuffleEnabled || originalPlaylist.length === 0) {
-    if(!shuffleEnabled && originalPlaylist.length) {
-      activePlaylist.a = [...originalPlaylist];
-      activePlaylist.b = [...originalPlaylist];
-    } else if(shuffleEnabled && originalPlaylist.length) {
-      activePlaylist.a = shuffleArray([...originalPlaylist]);
-      activePlaylist.b = shuffleArray([...originalPlaylist]);
+function syncBackgroundWithDeck(deckId) {
+    if(!syncPlayer||!apiReady) return;
+    const mainPlayer = (deckId==='a')?playerA:playerB;
+    if(!mainPlayer) return;
+    const videoId = state[deckId].videoId;
+    if(!videoId) return;
+    if(currentBgVideoId !== videoId){
+        currentBgVideoId = videoId;
+        syncPlayer.loadVideoById(videoId);
     }
-    playlistIndex.a = 0;
-    playlistIndex.b = 0;
-    displayPlaylist(activePlaylist.a);
-    updateStatus(shuffleEnabled ? '🔀 Modo aleatorio activado' : '📋 Orden normal restaurado');
-  }
+    try{
+        const mainTime = mainPlayer.getCurrentTime();
+        const mainState = mainPlayer.getPlayerState();
+        syncPlayer.seekTo(mainTime, true);
+        if(mainState===1 && syncPlayer.getPlayerState()!==1) syncPlayer.playVideo();
+        else if(mainState!==1 && syncPlayer.getPlayerState()===1) syncPlayer.pauseVideo();
+        if(mainState===1) syncPlayer.setVolume(0);
+    }catch(e){}
 }
-
-// ------------------------------------------------------------------
-//  PLAYLIST Y UI
-// ------------------------------------------------------------------
-function displayPlaylist(playlist) {
-  const container = document.getElementById('playlist-items');
-  if(!container) return;
-  container.innerHTML = '';
-  playlist.forEach((track, idx) => {
-    const item = document.createElement('div');
-    item.className = 'playlist-item';
-    item.innerHTML = `
-      <span class="playlist-item-title">${idx+1}. ${escapeHtml(track.title.substring(0, 45))}</span>
-      <div>
-        <button class="load-deck-a" data-video-id="${track.videoId}" data-title="${escapeHtml(track.title)}" data-artist="${escapeHtml(track.artist)}">▶ A</button>
-        <button class="load-deck-b" data-video-id="${track.videoId}" data-title="${escapeHtml(track.title)}" data-artist="${escapeHtml(track.artist)}">▶ B</button>
-      </div>
-    `;
-    container.appendChild(item);
-  });
-  document.querySelectorAll('.load-deck-a').forEach(btn => btn.addEventListener('click', (e) => {
-    const t = e.currentTarget;
-    loadToDeckNoAutoPlay('a', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'), false);
-  }));
-  document.querySelectorAll('.load-deck-b').forEach(btn => btn.addEventListener('click', (e) => {
-    const t = e.currentTarget;
-    loadToDeckNoAutoPlay('b', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'), false);
-  }));
-}
-
-async function loadYouTubePlaylist() {
-  const urlInput = document.getElementById('playlist-url');
-  const playlistUrl = urlInput.value.trim();
-  if(!playlistUrl) { updateStatus('❌ Ingresa una URL de playlist'); return; }
-  const playlistId = extractPlaylistId(playlistUrl);
-  if(!playlistId) { updateStatus('❌ No se pudo extraer ID de playlist'); return; }
-  updateStatus('📋 Cargando playlist...');
-  const API_KEY = 'AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
-  const resultsDiv = document.getElementById('playlist-items');
-  resultsDiv.innerHTML = '<div style="text-align:center;color:var(--dj-muted);padding:20px">Cargando playlist...</div>';
-  try {
-    let allItems = [], nextPageToken = '';
-    do {
-      const resp = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${API_KEY}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`);
-      const data = await resp.json();
-      if(data.error) throw new Error(data.error.message);
-      if(data.items) allItems = allItems.concat(data.items);
-      nextPageToken = data.nextPageToken || '';
-    } while(nextPageToken);
-    if(allItems.length === 0) throw new Error('No videos');
-    const playlist = allItems.map(item => ({
-      videoId: item.snippet.resourceId.videoId,
-      title: item.snippet.title || 'Sin título',
-      artist: item.snippet.videoOwnerChannelTitle || 'YouTube'
-    })).filter(i => i.videoId);
-    originalPlaylist = [...playlist];
-    if(shuffleEnabled) {
-      activePlaylist.a = shuffleArray([...playlist]);
-      activePlaylist.b = shuffleArray([...playlist]);
-    } else {
-      activePlaylist.a = [...playlist];
-      activePlaylist.b = [...playlist];
+setInterval(()=>{
+    if(currentPlayingDeck && state[currentPlayingDeck].playing){
+        syncBackgroundWithDeck(currentPlayingDeck);
     }
-    playlistIndex.a = 0; playlistIndex.b = 0;
-    displayPlaylist(activePlaylist.a);
-    updateStatus(`✅ Playlist cargada: ${playlist.length} canciones`);
-    if(playlist.length) loadToDeckNoAutoPlay('a', activePlaylist.a[0].videoId, activePlaylist.a[0].title, activePlaylist.a[0].artist, false);
-  } catch(e) {
-    resultsDiv.innerHTML = `<div style="text-align:center;color:var(--dj-muted);padding:20px">Error: ${e.message}</div>`;
-    updateStatus('❌ Error al cargar playlist');
-  }
-}
+},500);
 
-function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false) {
-  if((deck === 'a' && isLoadingA) || (deck === 'b' && isLoadingB)) {
-    updateStatus(`⏳ Ya cargando en Deck ${deck.toUpperCase()}, espera...`);
-    return;
-  }
-  if(deck === 'a') isLoadingA = true;
-  else isLoadingB = true;
-  showLoader(deck, true);
-  updateStatus(`🎵 Cargando "${title.substring(0,30)}" en Deck ${deck.toUpperCase()}...`);
-  
-  const loadFn = () => {
-    try {
-      if(deck === 'a' && playerA) { playerA.destroy(); playerA = null; }
-      if(deck === 'b' && playerB) { playerB.destroy(); playerB = null; }
-      state[deck].title = title.substring(0, 45);
-      state[deck].artist = artist;
-      state[deck].videoId = videoId;
-      state[deck].progress = 0;
-      state[deck].playing = false;
-      updateUI(deck);
-      const playerElement = `yt-player-${deck}`;
-      document.getElementById(playerElement).innerHTML = '';
-      const player = new YT.Player(playerElement, {
-        videoId: videoId,
-        playerVars: { autoplay: 0, controls: 0, disablekb: 1, modestbranding: 1, playsinline: 1, origin: window.location.origin },
-        events: {
-          onReady: (e) => {
-            updateStatus(`✅ "${title.substring(0,30)}" listo en Deck ${deck.toUpperCase()} → ${autoPlayNext ? 'reproduciendo' : 'presiona PLAY'}`);
-            state[deck].duration = e.target.getDuration();
-            e.target.setVolume(state[deck].vol);
-            updateUI(deck);
-            showLoader(deck, false);
-            if(deck === 'a') isLoadingA = false; else isLoadingB = false;
-            if(autoPlayNext) {
-              setTimeout(() => { e.target.playVideo(); }, 200);
-            }
-          },
-          onStateChange: (e) => {
-            if(e.data === YT.PlayerState.PLAYING) {
-              state[deck].playing = true;
-              document.getElementById(`play-${deck}`).textContent = '⏸ PAUSE';
-              currentPlayingDeck = deck;
-              updateBackgroundVideo(state[deck].videoId, state[deck].title);
-            } else if(e.data === YT.PlayerState.PAUSED) {
-              state[deck].playing = false;
-              document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
-              if(currentPlayingDeck === deck) {
-                if(deck === 'a' && state.b.playing) currentPlayingDeck = 'b';
-                else if(deck === 'b' && state.a.playing) currentPlayingDeck = 'a';
-                else currentPlayingDeck = null;
-              }
-            } else if(e.data === YT.PlayerState.ENDED) {
-              state[deck].playing = false;
-              document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
-              nextTrackDeck(deck, true);
-            }
-          },
-          onError: (err) => {
-            console.error(err);
-            updateStatus(`❌ Error en Deck ${deck.toUpperCase()}`);
-            showLoader(deck, false);
-            if(deck === 'a') isLoadingA = false; else isLoadingB = false;
-          }
-        }
-      });
-      if(deck === 'a') playerA = player; else playerB = player;
-    } catch(e) {
-      console.error(e);
-      updateStatus(`❌ Error: ${e.message}`);
-      showLoader(deck, false);
-      if(deck === 'a') isLoadingA = false; else isLoadingB = false;
-    }
-  };
-  if(apiReady) loadFn();
-  else {
-    const interval = setInterval(() => {
-      if(apiReady) { clearInterval(interval); loadFn(); }
-    }, 100);
-  }
-}
+// ---------- CONTROLES UI ----------
+const transparentCheck = document.getElementById('transparentMode');
+const fiestaCheck = document.getElementById('fiestaMode');
+transparentCheck.addEventListener('change', (e)=>{
+    document.getElementById('djApp').classList.toggle('transparent', e.target.checked);
+});
+fiestaCheck.addEventListener('change', (e)=>{
+    fiestaActive = e.target.checked;
+    if(fiestaActive) startFiestaEffects();
+    else stopFiesta();
+});
+const dropdownBtn = document.getElementById('dropdownBtn');
+const dropdownContent = document.getElementById('dropdownContent');
+dropdownBtn.addEventListener('click', ()=>dropdownContent.classList.toggle('show'));
+document.addEventListener('click', (e)=>{
+    if(!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) dropdownContent.classList.remove('show');
+});
 
-function nextTrackDeck(deck, autoPlay = false) {
-  if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
-  let newIndex = playlistIndex[deck] + 1;
-  if(newIndex >= activePlaylist[deck].length) newIndex = 0;
-  playlistIndex[deck] = newIndex;
-  const track = activePlaylist[deck][newIndex];
-  if(track) {
-    updateStatus(`⏭️ Siguiente: ${track.title}${autoPlay ? ' (reproducción automática)' : ''}`);
-    loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, autoPlay);
-  }
-}
-
-function prevTrackDeck(deck) {
-  if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
-  let newIndex = playlistIndex[deck] - 1;
-  if(newIndex < 0) newIndex = activePlaylist[deck].length - 1;
-  playlistIndex[deck] = newIndex;
-  const track = activePlaylist[deck][newIndex];
-  if(track) {
-    updateStatus(`⏮️ Anterior: ${track.title}`);
-    loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, false);
-  }
-}
-
-function updateProgress() {
-  try {
-    if(playerA && state.a.playing) {
-      state.a.progress = playerA.getCurrentTime();
-      state.a.duration = playerA.getDuration();
-    }
-    if(playerB && state.b.playing) {
-      state.b.progress = playerB.getCurrentTime();
-      state.b.duration = playerB.getDuration();
-    }
-  } catch(e) {}
-}
-
-async function searchYouTube() {
-  const query = document.getElementById('yt-search').value.trim();
-  if(!query) return;
-  const resultsDiv = document.getElementById('yt-results');
-  resultsDiv.innerHTML = '<div class="loading">Buscando...</div>';
-  const API_KEY = 'AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
-  try {
-    const resp = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`);
-    const data = await resp.json();
-    if(data.error) throw new Error(data.error.message);
-    if(data.items && data.items.length) {
-      resultsDiv.innerHTML = '';
-      data.items.forEach(video => {
-        const vid = video.id.videoId;
-        const tit = video.snippet.title;
-        const chan = video.snippet.channelTitle;
-        const thumb = video.snippet.thumbnails.medium.url;
-        const div = document.createElement('div');
-        div.className = 'result-item';
-        div.innerHTML = `
-          <img class="result-thumb" src="${thumb}">
-          <div class="result-info">
-            <div class="result-title">${escapeHtml(tit.substring(0,50))}</div>
-            <div class="result-channel">${escapeHtml(chan)}</div>
-            <div class="load-buttons">
-              <button class="search-load-a" data-video-id="${vid}" data-title="${escapeHtml(tit)}" data-artist="${escapeHtml(chan)}">🎧 Cargar en A</button>
-              <button class="search-load-b" data-video-id="${vid}" data-title="${escapeHtml(tit)}" data-artist="${escapeHtml(chan)}">🎧 Cargar en B</button>
-            </div>
-          </div>
-        `;
-        resultsDiv.appendChild(div);
-      });
-      document.querySelectorAll('.search-load-a').forEach(btn => btn.addEventListener('click', (e) => {
-        const el = e.currentTarget;
-        loadToDeckNoAutoPlay('a', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'), false);
-      }));
-      document.querySelectorAll('.search-load-b').forEach(btn => btn.addEventListener('click', (e) => {
-        const el = e.currentTarget;
-        loadToDeckNoAutoPlay('b', el.getAttribute('data-video-id'), el.getAttribute('data-title'), el.getAttribute('data-artist'), false);
-      }));
-    } else resultsDiv.innerHTML = '<div class="empty">No se encontraron resultados</div>';
-  } catch(e) {
-    resultsDiv.innerHTML = `<div class="error">Error: ${e.message}</div>`;
-  }
-}
-
-function escapeHtml(str) {
-  if(!str) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-// Dibujado de waveform animada individual para cada deck
-function drawWaveformAnimated() {
-  const canvasA = document.getElementById('wave-a');
-  const canvasB = document.getElementById('wave-b');
-  if(!canvasA || !canvasB) return;
-  const ctxA = canvasA.getContext('2d');
-  const ctxB = canvasB.getContext('2d');
-  const w = canvasA.width, h = canvasA.height;
-  const barCount = 40;
-  const barWidth = (w / barCount) * 0.8;
-  const step = w / barCount;
-  const now = Date.now() / 1000;
-  
-  function drawDeck(ctx, isPlaying, color) {
-    ctx.clearRect(0, 0, w, h);
-    if(!isPlaying) {
-      for(let i=0; i<barCount; i++) {
-        let height = 4 + Math.sin(i * 0.5) * 3;
-        let x = i * step + (step - barWidth)/2;
-        ctx.fillStyle = color + '40';
-        ctx.fillRect(x, h/2 - height/2, barWidth, height);
-      }
-      return;
-    }
-    for(let i=0; i<barCount; i++) {
-      let val = Math.sin(now * 8 + i * 0.3) * 0.5 + 0.5;
-      val = 0.3 + val * 0.7;
-      let height = 8 + val * (h - 16);
-      let x = i * step + (step - barWidth)/2;
-      ctx.fillStyle = color + 'cc';
-      ctx.fillRect(x, h/2 - height/2, barWidth, height);
-    }
-  }
-  drawDeck(ctxA, state.a.playing, '#00d4ff');
-  drawDeck(ctxB, state.b.playing, '#ff2d78');
-  requestAnimationFrame(drawWaveformAnimated);
-}
-
-// Vinyl y otras gráficas
-function drawVinyl(id, angle, color, playing) {
-  const c = document.getElementById('canvas-'+id);
-  if(!c) return;
-  const ctx = c.getContext('2d');
-  const cx = 65, cy = 65, r = 62;
-  ctx.clearRect(0,0,130,130);
-  ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle);
-  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-  ctx.fillStyle = '#1a1a2e'; ctx.fill();
-  for(let i=10;i<r-4;i+=6){
-    ctx.beginPath(); ctx.arc(0,0,i,0,Math.PI*2);
-    ctx.strokeStyle = i%12===3?color+'30':'#2a2a4050';
-    ctx.lineWidth = 1.5; ctx.stroke();
-  }
-  const grad = ctx.createLinearGradient(-r,-r,r,r);
-  grad.addColorStop(0,color+'60'); grad.addColorStop(1,'transparent');
-  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2);
-  ctx.fillStyle = '#0a0a0f'; ctx.fill();
-  ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2);
-  ctx.fillStyle = color; ctx.fill();
-  ctx.restore();
-  if(playing){
-    ctx.save(); ctx.translate(cx,cy);
-    const glow = ctx.createRadialGradient(0,0,45,0,0,62);
-    glow.addColorStop(0,'transparent'); glow.addColorStop(1,color+'40');
-    ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2);
-    ctx.fillStyle = glow; ctx.fill();
-    ctx.restore();
-  }
-}
-
+// ---------- FUNCIONES DJ ----------
+function updateStatus(msg) { document.getElementById('status-bar').textContent = msg; console.log(msg); }
+function showLoader(deck, show) { document.getElementById(`loader-${deck}`).classList.toggle('active', show); }
+function updateEQ(deck, band, val){ eqState[deck][band]=parseInt(val); document.getElementById(`eq-${deck}-${band}-val`).textContent=val+'%'; }
+window.onYouTubeIframeAPIReady = ()=>{ apiReady=true; updateStatus('YouTube API lista'); initSyncPlayer(); };
+function loadYouTubeAPI(){ if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){ var tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } }
+function extractVideoId(url){ let m = url.match(/(?:youtube\.com\/watch\?v=)([^&]+)/) || url.match(/(?:youtu\.be\/)([^?]+)/); return m ? m[1] : url; }
+function extractPlaylistId(url){ let m = url.match(/[&?]list=([^&]+)/); return m ? m[1] : null; }
+function shuffleArray(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function escapeHtml(str){ let div=document.createElement('div'); div.textContent=str; return div.innerHTML; }
 function fmtTime(s){ return Math.floor(s/60)+':'+(Math.floor(s%60)<10?'0':'')+Math.floor(s%60); }
+
+function displayPlaylist(playlist){
+    const container=document.getElementById('playlist-items');
+    container.innerHTML='';
+    playlist.forEach((track,idx)=>{
+        const item=document.createElement('div');
+        item.className='playlist-item';
+        item.innerHTML=`<span class="playlist-item-title">${idx+1}. ${escapeHtml(track.title.substring(0,45))}</span>
+        <div><button class="load-deck-a" data-video-id="${track.videoId}" data-title="${escapeHtml(track.title)}" data-artist="${escapeHtml(track.artist)}">▶ A</button>
+        <button class="load-deck-b" data-video-id="${track.videoId}" data-title="${escapeHtml(track.title)}" data-artist="${escapeHtml(track.artist)}">▶ B</button></div>`;
+        container.appendChild(item);
+    });
+    document.querySelectorAll('.load-deck-a').forEach(btn=>btn.addEventListener('click',()=>loadToDeckNoAutoPlay('a',btn.dataset.videoId,btn.dataset.title,btn.dataset.artist,false)));
+    document.querySelectorAll('.load-deck-b').forEach(btn=>btn.addEventListener('click',()=>loadToDeckNoAutoPlay('b',btn.dataset.videoId,btn.dataset.title,btn.dataset.artist,false)));
+}
+async function loadYouTubePlaylist(){
+    const url=document.getElementById('playlist-url').value.trim();
+    if(!url) return updateStatus('Ingresa URL');
+    const pid=extractPlaylistId(url);
+    if(!pid) return updateStatus('ID no válido');
+    updateStatus('Cargando playlist...');
+    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
+    const div=document.getElementById('playlist-items');
+    div.innerHTML='<div>Cargando...</div>';
+    try{
+        let all=[], token='';
+        do{
+            const resp=await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${pid}&key=${API_KEY}${token?`&pageToken=${token}`:''}`);
+            const data=await resp.json();
+            if(data.error) throw Error(data.error.message);
+            if(data.items) all=all.concat(data.items);
+            token=data.nextPageToken||'';
+        }while(token);
+        if(!all.length) throw Error('No videos');
+        const playlist=all.map(i=>({videoId:i.snippet.resourceId.videoId, title:i.snippet.title||'Sin título', artist:i.snippet.videoOwnerChannelTitle||'YouTube'}));
+        originalPlaylist=[...playlist];
+        if(shuffleEnabled){ activePlaylist.a=shuffleArray([...playlist]); activePlaylist.b=shuffleArray([...playlist]); }
+        else { activePlaylist.a=[...playlist]; activePlaylist.b=[...playlist]; }
+        playlistIndex.a=0; playlistIndex.b=0;
+        displayPlaylist(activePlaylist.a);
+        updateStatus(`Playlist cargada: ${playlist.length}`);
+        if(playlist.length) loadToDeckNoAutoPlay('a', activePlaylist.a[0].videoId, activePlaylist.a[0].title, activePlaylist.a[0].artist, false);
+    }catch(e){ div.innerHTML=`<div>Error: ${e.message}</div>`; updateStatus('Error'); }
+}
+function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext){
+    if((deck==='a'&& isLoadingA)||(deck==='b'&& isLoadingB)) return;
+    if(deck==='a') isLoadingA=true; else isLoadingB=true;
+    showLoader(deck,true);
+    updateStatus(`Cargando ${title.substring(0,30)}...`);
+    const loadFn=()=>{
+        try{
+            if(deck==='a' && playerA){ playerA.destroy(); playerA=null; }
+            if(deck==='b' && playerB){ playerB.destroy(); playerB=null; }
+            state[deck].title=title.substring(0,45);
+            state[deck].artist=artist;
+            state[deck].videoId=videoId;
+            state[deck].progress=0;
+            state[deck].playing=false;
+            updateUI(deck);
+            const el=document.getElementById(`yt-player-${deck}`);
+            el.innerHTML='';
+            const player=new YT.Player(el, {
+                videoId, playerVars:{autoplay:0, controls:0, disablekb:1, modestbranding:1, playsinline:1},
+                events:{
+                    onReady:e=>{
+                        updateStatus(`Listo: ${title.substring(0,30)}`);
+                        state[deck].duration=e.target.getDuration();
+                        e.target.setVolume(state[deck].vol);
+                        updateUI(deck);
+                        showLoader(deck,false);
+                        if(deck==='a') isLoadingA=false; else isLoadingB=false;
+                        if(autoPlayNext) setTimeout(()=>e.target.playVideo(),200);
+                    },
+                    onStateChange:e=>{
+                        if(e.data===YT.PlayerState.PLAYING){
+                            state[deck].playing=true;
+                            document.getElementById(`play-${deck}`).textContent='⏸ PAUSE';
+                            currentPlayingDeck=deck;
+                            syncBackgroundWithDeck(deck);
+                        } else if(e.data===YT.PlayerState.PAUSED){
+                            state[deck].playing=false;
+                            document.getElementById(`play-${deck}`).textContent='▶ PLAY';
+                        } else if(e.data===YT.PlayerState.ENDED){
+                            state[deck].playing=false;
+                            document.getElementById(`play-${deck}`).textContent='▶ PLAY';
+                            nextTrackDeck(deck,true);
+                        }
+                    },
+                    onError:()=>{ updateStatus(`Error en Deck ${deck}`); showLoader(deck,false); if(deck==='a') isLoadingA=false; else isLoadingB=false; }
+                }
+            });
+            if(deck==='a') playerA=player; else playerB=player;
+        }catch(e){ updateStatus(`Error: ${e.message}`); showLoader(deck,false); if(deck==='a') isLoadingA=false; else isLoadingB=false; }
+    };
+    if(apiReady) loadFn();
+    else{ let iv=setInterval(()=>{ if(apiReady){ clearInterval(iv); loadFn(); } },100); }
+}
+function nextTrackDeck(deck, autoPlay=false){
+    if(!activePlaylist[deck].length) return;
+    let idx=playlistIndex[deck]+1;
+    if(idx>=activePlaylist[deck].length) idx=0;
+    playlistIndex[deck]=idx;
+    let track=activePlaylist[deck][idx];
+    if(track) loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, autoPlay);
+}
+function prevTrackDeck(deck){
+    if(!activePlaylist[deck].length) return;
+    let idx=playlistIndex[deck]-1;
+    if(idx<0) idx=activePlaylist[deck].length-1;
+    playlistIndex[deck]=idx;
+    let track=activePlaylist[deck][idx];
+    if(track) loadToDeckNoAutoPlay(deck, track.videoId, track.title, track.artist, false);
+}
+function updateProgress(){
+    try{
+        if(playerA && state.a.playing){ state.a.progress=playerA.getCurrentTime(); state.a.duration=playerA.getDuration(); }
+        if(playerB && state.b.playing){ state.b.progress=playerB.getCurrentTime(); state.b.duration=playerB.getDuration(); }
+    }catch(e){}
+}
+async function searchYouTube(){
+    let q=document.getElementById('yt-search').value.trim();
+    if(!q) return;
+    let div=document.getElementById('yt-results');
+    div.innerHTML='<div>Buscando...</div>';
+    const API_KEY='AIzaSyAWWux-UREbdLfj2IqFY2ac22sHA7OdNPA';
+    try{
+        let resp=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(q)}&type=video&key=${API_KEY}`);
+        let data=await resp.json();
+        if(data.error) throw Error(data.error.message);
+        if(data.items && data.items.length){
+            div.innerHTML='';
+            data.items.forEach(v=>{
+                let itemDiv=document.createElement('div');
+                itemDiv.className='result-item';
+                itemDiv.innerHTML=`<img class="result-thumb" src="${v.snippet.thumbnails.medium.url}"><div class="result-info"><div class="result-title">${escapeHtml(v.snippet.title.substring(0,50))}</div><div class="result-channel">${escapeHtml(v.snippet.channelTitle)}</div><div class="load-buttons"><button class="search-load-a" data-video-id="${v.id.videoId}" data-title="${escapeHtml(v.snippet.title)}" data-artist="${escapeHtml(v.snippet.channelTitle)}">Cargar en A</button><button class="search-load-b" data-video-id="${v.id.videoId}" data-title="${escapeHtml(v.snippet.title)}" data-artist="${escapeHtml(v.snippet.channelTitle)}">Cargar en B</button></div></div>`;
+                div.appendChild(itemDiv);
+            });
+            document.querySelectorAll('.search-load-a').forEach(btn=>btn.addEventListener('click',()=>loadToDeckNoAutoPlay('a',btn.dataset.videoId,btn.dataset.title,btn.dataset.artist,false)));
+            document.querySelectorAll('.search-load-b').forEach(btn=>btn.addEventListener('click',()=>loadToDeckNoAutoPlay('b',btn.dataset.videoId,btn.dataset.title,btn.dataset.artist,false)));
+        } else div.innerHTML='<div>No resultados</div>';
+    } catch(e){ div.innerHTML=`<div>Error: ${e.message}</div>`; }
+}
+function drawWaveformAnimated(){
+    const canvasA=document.getElementById('wave-a'), canvasB=document.getElementById('wave-b');
+    if(!canvasA||!canvasB) return;
+    const ctxA=canvasA.getContext('2d'), ctxB=canvasB.getContext('2d');
+    const w=canvasA.width, h=canvasA.height, barCount=40, barWidth=(w/barCount)*0.8, step=w/barCount;
+    const now=Date.now()/1000;
+    function draw(ctx, isPlaying, color){
+        ctx.clearRect(0,0,w,h);
+        for(let i=0;i<barCount;i++){
+            let height= isPlaying ? 8+ (0.3+0.7*(Math.sin(now*8+i*0.3)*0.5+0.5))*(h-16) : 4+Math.sin(i*0.5)*3;
+            let x=i*step+(step-barWidth)/2;
+            ctx.fillStyle=isPlaying?color+'cc':color+'40';
+            ctx.fillRect(x,h/2-height/2,barWidth,height);
+        }
+    }
+    draw(ctxA, state.a.playing, '#00d4ff');
+    draw(ctxB, state.b.playing, '#ff2d78');
+    requestAnimationFrame(drawWaveformAnimated);
+}
+function drawVinyl(id, angle, color, playing){
+    const c=document.getElementById(`canvas-${id}`);
+    if(!c) return;
+    const ctx=c.getContext('2d');
+    const cx=65,cy=65,r=62;
+    ctx.clearRect(0,0,130,130);
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(angle);
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.fillStyle='#1a1a2e'; ctx.fill();
+    for(let i=10;i<r-4;i+=6){ ctx.beginPath(); ctx.arc(0,0,i,0,Math.PI*2); ctx.strokeStyle=i%12===3?color+'30':'#2a2a4050'; ctx.lineWidth=1.5; ctx.stroke(); }
+    const grad=ctx.createLinearGradient(-r,-r,r,r);
+    grad.addColorStop(0,color+'60'); grad.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2);
+    ctx.fillStyle='#0a0a0f'; ctx.fill();
+    ctx.beginPath(); ctx.arc(0,0,6,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.restore();
+    if(playing){
+        ctx.save(); ctx.translate(cx,cy);
+        const glow=ctx.createRadialGradient(0,0,45,0,0,62);
+        glow.addColorStop(0,'transparent'); glow.addColorStop(1,color+'40');
+        ctx.beginPath(); ctx.arc(0,0,62,0,Math.PI*2);
+        ctx.fillStyle=glow; ctx.fill();
+        ctx.restore();
+    }
+}
 function updateUI(id){
-  const s = state[id];
-  const pct = s.duration > 0 ? (s.progress/s.duration)*100 : 0;
-  document.getElementById(`prog-${id}`).style.width = Math.min(100,pct)+'%';
-  document.getElementById(`cur-${id}`).textContent = fmtTime(s.progress);
-  document.getElementById(`rem-${id}`).textContent = '-'+fmtTime(s.duration - s.progress);
-  document.getElementById(`title-${id}`).textContent = s.title;
-  document.getElementById(`artist-${id}`).textContent = s.artist;
+    let s=state[id];
+    let pct=s.duration>0?(s.progress/s.duration)*100:0;
+    document.getElementById(`prog-${id}`).style.width=Math.min(100,pct)+'%';
+    document.getElementById(`cur-${id}`).textContent=fmtTime(s.progress);
+    document.getElementById(`rem-${id}`).textContent='-'+fmtTime(s.duration-s.progress);
+    document.getElementById(`title-${id}`).textContent=s.title;
+    document.getElementById(`artist-${id}`).textContent=s.artist;
 }
-
-let vinylAngleA = 0, vinylAngleB = 0;
-function loop() {
-  updateProgress();
-  if(state.a.playing) vinylAngleA += 0.03;
-  if(state.b.playing) vinylAngleB += 0.03;
-  drawVinyl('a', vinylAngleA, '#00d4ff', state.a.playing);
-  drawVinyl('b', vinylAngleB, '#ff2d78', state.b.playing);
-  updateUI('a'); updateUI('b');
-  requestAnimationFrame(loop);
+let vinylAngleA=0, vinylAngleB=0;
+function loop(){
+    updateProgress();
+    if(state.a.playing) vinylAngleA+=0.03;
+    if(state.b.playing) vinylAngleB+=0.03;
+    drawVinyl('a',vinylAngleA,'#00d4ff',state.a.playing);
+    drawVinyl('b',vinylAngleB,'#ff2d78',state.b.playing);
+    updateUI('a'); updateUI('b');
+    requestAnimationFrame(loop);
 }
-
-function togglePlay(id) {
-  const player = id === 'a' ? playerA : playerB;
-  if(!player) return updateStatus(`⚠️ Deck ${id.toUpperCase()}: no hay canción`);
-  try {
-    if(player.getPlayerState() === 1) player.pauseVideo();
-    else player.playVideo();
-  } catch(e) {}
+function togglePlay(id){
+    let p=(id==='a')?playerA:playerB;
+    if(!p) return;
+    try{ (p.getPlayerState()===1)?p.pauseVideo():p.playVideo(); }catch(e){}
 }
-function seekDeck(id, e){
-  const bar = e.currentTarget;
-  const rect = bar.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
-  const player = id === 'a' ? playerA : playerB;
-  if(player && player.seekTo && state[id].duration) player.seekTo(pct * state[id].duration, true);
+function seekDeck(id,e){
+    let bar=e.currentTarget, rect=bar.getBoundingClientRect(), pct=(e.clientX-rect.left)/rect.width;
+    let p=(id==='a')?playerA:playerB;
+    if(p && p.seekTo && state[id].duration) p.seekTo(pct*state[id].duration,true);
 }
-function setVol(id, v){
-  state[id].vol = parseInt(v);
-  const player = id === 'a' ? playerA : playerB;
-  if(player && player.setVolume) player.setVolume(state[id].vol);
-  document.getElementById(`vol-${id}-val`).textContent = v+'%';
-  crossfade(document.getElementById('crossfader').value);
+function setVol(id,v){
+    state[id].vol=parseInt(v);
+    let p=(id==='a')?playerA:playerB;
+    if(p && p.setVolume) p.setVolume(state[id].vol);
+    document.getElementById(`vol-${id}-val`).textContent=v+'%';
+    crossfade(document.getElementById('crossfader').value);
 }
 function crossfade(v){
-  const cross = parseInt(v);
-  const volA = Math.max(0, Math.min(100, 100 - cross));
-  const volB = Math.max(0, Math.min(100, cross));
-  if(playerA && playerA.setVolume) playerA.setVolume((state.a.vol/100) * volA);
-  if(playerB && playerB.setVolume) playerB.setVolume((state.b.vol/100) * volB);
+    let cross=parseInt(v), volA=Math.max(0,Math.min(100,100-cross)), volB=Math.max(0,Math.min(100,cross));
+    if(playerA && playerA.setVolume) playerA.setVolume((state.a.vol/100)*volA);
+    if(playerB && playerB.setVolume) playerB.setVolume((state.b.vol/100)*volB);
 }
-function cuePoint(id){
-  const player = id === 'a' ? playerA : playerB;
-  if(player && player.seekTo) player.seekTo(0, true);
-}
+function cuePoint(id){ let p=(id==='a')?playerA:playerB; if(p && p.seekTo) p.seekTo(0,true); }
 function quickLoadTrack(id){
-  const inp = document.getElementById(`track-name-${id}`).value.trim();
-  if(!inp) return;
-  const videoId = extractVideoId(inp);
-  loadToDeckNoAutoPlay(id, videoId, 'Track personalizado', 'Manual', false);
+    let inp=document.getElementById(`track-name-${id}`).value.trim();
+    if(!inp) return;
+    let videoId=extractVideoId(inp);
+    loadToDeckNoAutoPlay(id,videoId,'Track personalizado','Manual',false);
 }
-function toggleQuickPanel(){
-  document.getElementById('quickPanel').classList.toggle('show');
+function toggleQuickPanel(){ document.getElementById('quickPanel').classList.toggle('show'); }
+document.addEventListener('click',(e)=>{ let panel=document.getElementById('quickPanel'); if(panel && !panel.contains(e.target) && !e.target.closest('.quick-toggle')) panel.classList.remove('show'); });
+document.getElementById('shuffle-checkbox').addEventListener('change',(e)=>{ shuffleEnabled=e.target.checked; if(originalPlaylist.length) applyShuffleToPlaylist(); else updateStatus('Carga una playlist primero'); });
+function applyShuffleToPlaylist(){
+    if(shuffleEnabled && originalPlaylist.length){
+        activePlaylist.a=shuffleArray([...originalPlaylist]); activePlaylist.b=shuffleArray([...originalPlaylist]);
+    } else if(!shuffleEnabled && originalPlaylist.length){
+        activePlaylist.a=[...originalPlaylist]; activePlaylist.b=[...originalPlaylist];
+    }
+    playlistIndex.a=0; playlistIndex.b=0;
+    displayPlaylist(activePlaylist.a);
+    updateStatus(shuffleEnabled?'Modo aleatorio':'Orden normal');
 }
-document.addEventListener('click', (e) => {
-  const panel = document.getElementById('quickPanel');
-  const btn = document.querySelector('.quick-toggle');
-  if(panel && btn && !btn.contains(e.target) && !panel.contains(e.target)) panel.classList.remove('show');
-});
 
-// Shuffle checkbox
-document.getElementById('shuffle-checkbox').addEventListener('change', (e) => {
-  shuffleEnabled = e.target.checked;
-  if(originalPlaylist.length) applyShuffleToPlaylist();
-  else updateStatus('Primero carga una playlist para usar shuffle');
-});
-
-// Inicialización
-drawWaveformAnimated();
 loadYouTubeAPI();
+drawWaveformAnimated();
 loop();
-setInterval(() => crossfade(document.getElementById('crossfader').value), 100);
+setInterval(()=>crossfade(document.getElementById('crossfader').value),100);
 </script>
 </body>
 </html>

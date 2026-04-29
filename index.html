@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>DJMENDEZ PRO - SINGLE DECK ENHANCED</title>
+    <title>DJMENDEZ PRO</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
       * {
@@ -20,6 +20,7 @@
           overflow: hidden;
           position: relative;
       }
+      /* Reproductor de fondo (blur) */
       .sync-player {
           position: fixed;
           top: 0;
@@ -75,7 +76,7 @@
           flex: 1;
           min-height: 0;
       }
-      /* Columna izquierda: deck (mejorado) */
+      /* Columna izquierda: deck */
       .deck-col {
           flex: 1;
           background: rgba(10,10,15,0.6);
@@ -127,6 +128,22 @@
           border-radius: 50%;
           box-shadow: 0 0 20px #00d4ff;
           transition: box-shadow 0.2s;
+      }
+      /* Destellos alrededor del vinilo */
+      .sparkle {
+          position: absolute;
+          width: 6px;
+          height: 6px;
+          background: radial-gradient(circle, #ffffff, #00d4ff);
+          border-radius: 50%;
+          box-shadow: 0 0 12px #00d4ff, 0 0 24px #00d4ff;
+          pointer-events: none;
+          animation: sparkleAnim 0.8s ease-out forwards;
+          z-index: 15;
+      }
+      @keyframes sparkleAnim {
+          0% { transform: scale(0) rotate(0deg); opacity: 1; }
+          100% { transform: scale(1.8) rotate(180deg); opacity: 0; }
       }
       .vinyl-lights {
           position: absolute;
@@ -193,21 +210,7 @@
           0% { transform: scale(0.9); opacity: 0.5; }
           100% { transform: scale(1.2); opacity: 0; }
       }
-      .vu-meter {
-          width: 100%;
-          height: 8px;
-          background: #1e1e30;
-          border-radius: 4px;
-          margin: 50px 0;
-          overflow: hidden;
-      }
-      .vu-fill {
-          width: 0%;
-          height: 100%;
-          background: linear-gradient(90deg, #00ff88, #ffaa00, #ff2d78);
-          border-radius: 4px;
-          transition: width 0.05s linear;
-      }
+      /* Espectro (sin vu-meter) */
       .spectrum {
           display: flex;
           justify-content: center;
@@ -293,7 +296,7 @@
           height: 4px;
           cursor: pointer;
       }
-      /* Columna derecha: video con efecto similar al deck */
+      /* Columna derecha: video con efecto de borde */
       .video-col {
           flex: 1;
           background: rgba(0,0,0,0.5);
@@ -612,7 +615,7 @@
     <div class="top-row">
       <!-- Deck izquierdo -->
       <div class="deck-col">
-        <div class="deck-title">🎧 SINGLE DECK 🎧</div>
+        <div class="deck-title">🎧 DJMENDEZ PRO 🎧</div>
         <div class="vinyl-container">
           <div class="vinyl-lights"></div>
           <div class="vinyl-ripple"></div>
@@ -620,7 +623,7 @@
             <canvas id="vinylCanvas" width="160" height="160"></canvas>
           </div>
         </div>
-        <div class="vu-meter"><div class="vu-fill" id="vuFill"></div></div>
+        <!-- Espectro (sin vu-meter) -->
         <div class="spectrum" id="spectrum"></div>
         <div class="track-info">
           <div class="track-title" id="trackTitle">NO TRACK LOADED</div>
@@ -640,7 +643,7 @@
         </div>
         <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
       </div>
-      <!-- Columna derecha: video con reproductor sincronizado y efecto de borde -->
+      <!-- Columna derecha: video con reproductor sincronizado -->
       <div class="video-col" id="videoCol">
         <div id="previewPlayer" style="width:100%; height:100%; border-radius:20px;"></div>
       </div>
@@ -730,6 +733,9 @@ let fiestaActive = false;
 let intensity = 30;
 let flashInterval = null, confetiInterval, numerosInterval, imagenesInterval, nombreInterval;
 
+// Efecto de destellos alrededor del vinilo
+let sparkleInterval = null;
+
 const state = {
     playing: false,
     progress: 0,
@@ -740,7 +746,7 @@ const state = {
     videoId: null
 };
 
-// Variables para efectos visuales (no se bloquean)
+// Variables para efectos visuales
 let energyLevel = 0.2;
 let spectrumBars = [];
 
@@ -752,7 +758,7 @@ function extractVideoId(url){ let m=url.match(/(?:youtube\.com\/watch\?v=)([^&]+
 function extractPlaylistId(url){ let m=url.match(/[&?]list=([^&]+)/); return m?m[1]:null; }
 function shuffleArray(arr){ for(let i=arr.length-1;i>0;i--){ let j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
-// ========== 3. EFECTOS VISUALES DINÁMICOS (NUNCA SE BLOQUEAN) ==========
+// ========== 3. EFECTOS VISUALES DINÁMICOS ==========
 function updateEnergyAndSpectrum() {
     if(!state.playing || !currentPlayer) {
         energyLevel = 0.1;
@@ -763,9 +769,6 @@ function updateEnergyAndSpectrum() {
         energyLevel = 0.25 + raw * 0.7;
         energyLevel = Math.min(0.95, Math.max(0.2, energyLevel));
     }
-    // Medidor VU
-    let vuFill = document.getElementById('vuFill');
-    if(vuFill) vuFill.style.width = (energyLevel * 100) + '%';
     // Borde y sombra del deck izquierdo
     let hue = 180 - (energyLevel * 180);
     let borderColor = `hsl(${hue}, 100%, 60%)`;
@@ -780,7 +783,7 @@ function updateEnergyAndSpectrum() {
         videoCol.style.borderColor = borderColor;
         videoCol.style.boxShadow = `0 0 15px ${borderColor}`;
     }
-    // Espectro
+    // Espectro visual
     let spectrumDiv = document.getElementById('spectrum');
     if(spectrumDiv && spectrumBars.length === 0) {
         for(let i=0; i<20; i++) {
@@ -803,7 +806,38 @@ function updateEnergyAndSpectrum() {
 }
 updateEnergyAndSpectrum();
 
-// ========== 4. SIMULACIÓN DE BEATS ==========
+// ========== 4. DESTELLOS ALREDEDOR DEL VINILO ==========
+function createSparkle() {
+    if(!state.playing) return;
+    const container = document.querySelector('.vinyl-container');
+    if(!container) return;
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.left + rect.width/2;
+    const centerY = rect.top + rect.height/2;
+    // Posición aleatoria alrededor del vinilo (radio entre 90 y 110px)
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 90 + Math.random() * 25;
+    const x = centerX + Math.cos(angle) * radius;
+    const y = centerY + Math.sin(angle) * radius;
+    const sparkle = document.createElement('div');
+    sparkle.className = 'sparkle';
+    sparkle.style.left = (x - 3) + 'px';
+    sparkle.style.top = (y - 3) + 'px';
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 800);
+}
+function startSparkles() {
+    if(sparkleInterval) clearInterval(sparkleInterval);
+    sparkleInterval = setInterval(() => {
+        createSparkle();
+    }, 200);
+}
+function stopSparkles() {
+    if(sparkleInterval) clearInterval(sparkleInterval);
+    sparkleInterval = null;
+}
+
+// ========== 5. VINILO ANIMADO ==========
 let vinylAngle=0;
 function drawVinyl(){
     let canvas=document.getElementById('vinylCanvas');
@@ -841,7 +875,7 @@ function drawVinyl(){
 }
 drawVinyl();
 
-// ========== 5. EFECTOS FIESTA ==========
+// ========== 6. EFECTOS FIESTA ==========
 function getStrobeParams(v) { let freq = Math.max(80, 500 - v*4); let opac = (v/100)*0.3; return {interval:freq, opacity:opac}; }
 function updateStrobe() { if(!fiestaActive){ if(flashInterval)clearInterval(flashInterval); return;} if(flashInterval)clearInterval(flashInterval); let {interval,opacity}=getStrobeParams(intensity); if(interval===Infinity)return; let sDiv=document.getElementById('strobe'); let st=false; flashInterval=setInterval(()=>{ if(!fiestaActive)return; sDiv.style.opacity=st?0:opacity; st=!st; },interval); }
 function getDelay(v,base){ let factor=Math.max(0.3,Math.min(2.5,2.5-(v/50))); return base*factor; }
@@ -874,7 +908,7 @@ function startFiestaEffects(){
 function stopFiestaIntervals(){ if(confetiInterval)clearTimeout(confetiInterval); if(numerosInterval)clearTimeout(numerosInterval); if(imagenesInterval)clearTimeout(imagenesInterval); if(nombreInterval)clearTimeout(nombreInterval); if(flashInterval)clearInterval(flashInterval); }
 function stopFiesta(){ fiestaActive=false; stopFiestaIntervals(); document.getElementById('strobe').style.opacity='0'; document.getElementById('fiestaLayer').innerHTML=''; }
 
-// ========== 6. REPRODUCTORES Y SINCRONIZACIÓN ==========
+// ========== 7. REPRODUCTORES Y SINCRONIZACIÓN (MUY PRECISA) ==========
 window.onYouTubeIframeAPIReady = () => { apiReady=true; initSyncPlayer(); updateStatus('YouTube API lista'); };
 function loadYouTubeAPI() { if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){ let tag=document.createElement('script'); tag.src='https://www.youtube.com/iframe_api'; document.head.appendChild(tag); } }
 
@@ -894,7 +928,7 @@ function initPreviewPlayer() {
     if(previewPlayer) try{ previewPlayer.destroy(); }catch(e){}
     previewPlayer = new YT.Player('previewPlayer', {
         height: '100%', width: '100%',
-        playerVars: { autoplay: 1, mute: 1, controls: 0, modestbranding: 1, playsinline: 1, disablekb: 1 }
+        playerVars: { autoplay: 1, mute: 0, controls: 0, modestbranding: 1, playsinline: 1, disablekb: 1 }
     });
 }
 
@@ -905,33 +939,39 @@ function syncAllPlayers() {
     let mainTime = currentPlayer.getCurrentTime();
     let mainState = currentPlayer.getPlayerState();
     
-    // Sincronizar preview (lateral)
-    if(previewPlayer && previewPlayer.getVideoData && previewPlayer.getVideoData().video_id !== vid) {
-        previewPlayer.loadVideoById({ videoId: vid, startSeconds: mainTime });
-        setTimeout(()=>{ if(previewPlayer && previewPlayer.playVideo) previewPlayer.playVideo(); previewPlayer.setVolume(0); }, 100);
-    } else if(previewPlayer) {
-        if(Math.abs(mainTime - previewPlayer.getCurrentTime()) > 0.3)
-            previewPlayer.seekTo(mainTime, true);
-        if(mainState === 1 && previewPlayer.getPlayerState() !== 1) previewPlayer.playVideo();
-        else if(mainState !== 1 && previewPlayer.getPlayerState() === 1) previewPlayer.pauseVideo();
-        previewPlayer.setVolume(0);
+    // Sincronizar preview (lateral) - forzar tiempo exacto
+    if(previewPlayer) {
+        try {
+            let previewVid = previewPlayer.getVideoData()?.video_id;
+            if(previewVid !== vid) {
+                previewPlayer.loadVideoById({ videoId: vid, startSeconds: mainTime });
+                setTimeout(()=> previewPlayer.playVideo(), 50);
+            } else {
+                if(Math.abs(mainTime - previewPlayer.getCurrentTime()) > 0.15)
+                    previewPlayer.seekTo(mainTime, true);
+                if(mainState === 1 && previewPlayer.getPlayerState() !== 1) previewPlayer.playVideo();
+                else if(mainState !== 1 && previewPlayer.getPlayerState() === 1) previewPlayer.pauseVideo();
+            }
+        } catch(e) {}
     }
-    
     // Sincronizar fondo
-    if(syncPlayer && syncPlayer.getVideoData && syncPlayer.getVideoData().video_id !== vid) {
-        syncPlayer.loadVideoById({ videoId: vid, startSeconds: mainTime });
-        setTimeout(()=>{ if(syncPlayer && syncPlayer.playVideo) syncPlayer.playVideo(); syncPlayer.setVolume(0); }, 100);
-    } else if(syncPlayer) {
-        if(Math.abs(mainTime - syncPlayer.getCurrentTime()) > 0.3)
-            syncPlayer.seekTo(mainTime, true);
-        if(mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
-        else if(mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
-        syncPlayer.setVolume(0);
+    if(syncPlayer) {
+        try {
+            let syncVid = syncPlayer.getVideoData()?.video_id;
+            if(syncVid !== vid) {
+                syncPlayer.loadVideoById({ videoId: vid, startSeconds: mainTime });
+                setTimeout(()=> syncPlayer.playVideo(), 50);
+            } else {
+                if(Math.abs(mainTime - syncPlayer.getCurrentTime()) > 0.15)
+                    syncPlayer.seekTo(mainTime, true);
+                if(mainState === 1 && syncPlayer.getPlayerState() !== 1) syncPlayer.playVideo();
+                else if(mainState !== 1 && syncPlayer.getPlayerState() === 1) syncPlayer.pauseVideo();
+            }
+            syncPlayer.setVolume(0);
+        } catch(e) {}
     }
 }
-
-// Sincronización periódica cada 300ms
-setInterval(syncAllPlayers, 300);
+setInterval(syncAllPlayers, 100); // Sincronización muy frecuente
 
 function loadSong(videoId, title, artist, autoPlay=true) {
     if(isLoading) { updateStatus('Cargando, espera...'); return; }
@@ -944,6 +984,9 @@ function loadSong(videoId, title, artist, autoPlay=true) {
     document.getElementById('trackTitle').innerText=title;
     document.getElementById('trackArtist').innerText=artist;
     document.getElementById('trackBadge').innerHTML=`🎵 ${title.substring(0,35)} 🎵`;
+    
+    // Detener destellos mientras carga
+    stopSparkles();
     
     // Destruir players existentes
     if(currentPlayer) { try{ currentPlayer.destroy(); }catch(e){} currentPlayer=null; }
@@ -964,13 +1007,15 @@ function loadSong(videoId, title, artist, autoPlay=true) {
                 updateStatus(`✅ Listo: ${title.substring(0,30)}`);
                 if(autoPlay) {
                     e.target.playVideo();
-                    initPreviewPlayer();  // recrear el preview para que tome el nuevo video
-                    setTimeout(()=>syncAllPlayers(), 200);
+                    initPreviewPlayer();  // recrear preview
+                    setTimeout(()=> {
+                        syncAllPlayers();
+                        startSparkles();   // activar destellos solo si está sonando
+                    }, 300);
                 } else {
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
                     document.getElementById('mainDeck').classList.remove('playing');
-                    initPreviewPlayer();
                 }
             },
             onStateChange: e => {
@@ -979,18 +1024,21 @@ function loadSong(videoId, title, artist, autoPlay=true) {
                     document.getElementById('playPauseBtn').innerHTML='⏸ PAUSE';
                     document.getElementById('mainDeck').classList.add('playing');
                     syncAllPlayers();
+                    startSparkles();
                 } else if(e.data===YT.PlayerState.PAUSED){
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
                     document.getElementById('mainDeck').classList.remove('playing');
+                    stopSparkles();
                 } else if(e.data===YT.PlayerState.ENDED){
                     state.playing=false;
                     document.getElementById('playPauseBtn').innerHTML='▶ PLAY';
                     document.getElementById('mainDeck').classList.remove('playing');
+                    stopSparkles();
                     nextTrack();
                 }
             },
-            onError: e => { updateStatus(`Error en reproductor`); isLoading=false; }
+            onError: e => { updateStatus(`Error en reproductor`); isLoading=false; stopSparkles(); }
         }
     });
 }
@@ -1028,7 +1076,7 @@ function updateUI(){
 function updateProgressLoop(){ requestAnimationFrame(function loop(){ updateUI(); requestAnimationFrame(loop); }); }
 updateProgressLoop();
 
-// ========== 7. PLAYLIST Y NAVEGACIÓN ==========
+// ========== 8. PLAYLIST Y NAVEGACIÓN ==========
 function nextTrack() {
     if(!activePlaylist.length) return;
     let newIdx=currentIndex+1;
@@ -1143,7 +1191,7 @@ async function searchSongs(){
     } catch(e){ resultsDiv.innerHTML=`<div>Error: ${e.message}</div>`; }
 }
 
-// ========== 8. CONTROLES DE UI Y MODOS ==========
+// ========== 9. CONTROLES DE UI Y MODOS ==========
 document.getElementById('transparentMode').addEventListener('change',(e)=>{
     document.getElementById('djApp').classList.toggle('transparent', e.target.checked);
 });
@@ -1186,14 +1234,16 @@ personalModeCheck.addEventListener('change',(e)=>{
         modeDJDiv.classList.add('hide');
         modePersonalDiv.classList.remove('hide');
         if(currentPlayer && currentPlayer.pauseVideo) currentPlayer.pauseVideo();
+        stopSparkles();
     } else {
         modeDJDiv.classList.remove('hide');
         modePersonalDiv.classList.add('hide');
         if(localAudio && !localAudio.paused) localAudio.pause();
+        if(state.playing) startSparkles();
     }
 });
 
-// ========== 9. REPRODUCTOR LOCAL (sin cambios) ==========
+// ========== 10. REPRODUCTOR LOCAL ==========
 let localAudio=null, localCtx=null, localSource=null, localAnalyser=null, localAnim=null;
 const audioFile=document.getElementById('localAudioFile');
 const imageFile=document.getElementById('localImageFile');

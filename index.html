@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>DJMENDEZ PRO - YouTube DJ Controller</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
@@ -22,6 +22,7 @@
           --dj-amber: #ffaa00;
           --dj-text: #e0e0ff;
           --dj-muted: #6060a0;
+          --transition-opacity: opacity 0.3s ease;
       }
       body {
           background: var(--dj-bg);
@@ -61,10 +62,36 @@
           gap: 12px;
           position: relative;
           z-index: 1;
+          transition: var(--transition-opacity);
       }
+      /* Estado inactivo: todo se vuelve más transparente, pero no desaparece */
+      .dj-app.inactive .left-col,
+      .dj-app.inactive .right-col:not(.viz-section),
+      .dj-app.inactive .mixer,
+      .dj-app.inactive .decks,
+      .dj-app.inactive .playlist-panel,
+      .dj-app.inactive .yt-panel,
+      .dj-app.inactive .floating-btn,
+      .dj-app.inactive .quick-panel,
+      .dj-app.inactive .status-bar,
+      .dj-app.inactive .current-track-badge {
+          opacity: 0.35;
+          transition: var(--transition-opacity);
+      }
+      /* El visualizador de ritmo se mantiene más visible */
+      .dj-app.inactive .viz-section {
+          opacity: 0.85;
+          transition: var(--transition-opacity);
+      }
+      /* El header se atenúa un poco menos para que el título se vea */
+      .dj-app.inactive .header {
+          opacity: 0.6;
+      }
+      
       .header {
           text-align: center;
           flex-shrink: 0;
+          transition: var(--transition-opacity);
       }
       .header h1 {
           font-family: 'Orbitron', monospace;
@@ -94,12 +121,14 @@
           gap: 12px;
           overflow-y: auto;
           padding-right: 5px;
+          transition: var(--transition-opacity);
       }
       .decks {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 15px;
           flex-shrink: 0;
+          transition: var(--transition-opacity);
       }
       .deck {
           background: rgba(26,26,46,0.85);
@@ -108,6 +137,7 @@
           border-radius: 15px;
           padding: 18px;
           position: relative;
+          transition: background 0.2s;
       }
       .deck-a { border-top: 3px solid var(--dj-cyan); }
       .deck-b { border-top: 3px solid var(--dj-pink); }
@@ -224,6 +254,7 @@
           border-radius: 15px;
           padding: 18px;
           flex-shrink: 0;
+          transition: var(--transition-opacity);
       }
       .mixer-title {
           font-family: 'Orbitron', monospace;
@@ -374,8 +405,8 @@
           flex-direction: column;
           gap: 12px;
           overflow-y: auto;
+          transition: var(--transition-opacity);
       }
-      /* Visualizador de ritmo - ya no tiene BPM, solo ondas de ritmo */
       .viz-section {
           background: rgba(26,26,46,0.85);
           backdrop-filter: blur(10px);
@@ -383,6 +414,7 @@
           border-radius: 15px;
           padding: 15px;
           flex-shrink: 0;
+          transition: var(--transition-opacity);
       }
       .viz-label {
           font-size: 11px;
@@ -406,6 +438,7 @@
           border-radius: 15px;
           padding: 15px;
           margin-bottom: 12px;
+          transition: var(--transition-opacity);
       }
       .playlist-title {
           font-family: 'Orbitron', monospace;
@@ -497,6 +530,7 @@
           border: 1px solid var(--dj-border);
           border-radius: 15px;
           padding: 15px;
+          transition: var(--transition-opacity);
       }
       .yt-title {
           font-family: 'Orbitron', monospace;
@@ -570,6 +604,7 @@
           bottom: 20px;
           right: 20px;
           z-index: 1000;
+          transition: var(--transition-opacity);
       }
       .quick-toggle {
           background: linear-gradient(135deg, var(--dj-cyan), var(--dj-pink));
@@ -600,6 +635,7 @@
           display: none;
           z-index: 999;
           box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+          transition: var(--transition-opacity);
       }
       .quick-panel.show { display: block; }
       .quick-panel .links-title {
@@ -648,6 +684,7 @@
           font-size: 10px;
           color: #00ff88;
           z-index: 1000;
+          transition: var(--transition-opacity);
       }
       .current-track-badge {
           position: fixed;
@@ -661,6 +698,7 @@
           color: var(--dj-amber);
           z-index: 1000;
           font-family: 'Orbitron', monospace;
+          transition: var(--transition-opacity);
       }
       ::-webkit-scrollbar { width: 8px; }
       ::-webkit-scrollbar-track { background: var(--dj-surface); border-radius: 4px; }
@@ -674,7 +712,7 @@
 <div class="background-overlay"></div>
 <div class="current-track-badge" id="track-badge">🎵 Esperando canción...</div>
 
-<div class="dj-app">
+<div class="dj-app" id="djApp">
   <div class="header">
     <h1>DJMENDEZ PRO</h1>
     <p>🎂 MI CUMPLEAÑOS 🎂 • VISUALIZADOR DE RITMO EN VIVO</p>
@@ -782,7 +820,7 @@
     </div>
 
     <div class="right-col">
-      <!-- NUEVO VISUALIZADOR DE RITMO (sin números BPM) -->
+      <!-- VISUALIZADOR DE RITMO -->
       <div class="viz-section">
         <div class="viz-label">🎵 VISUALIZADOR DE RITMO 🎵</div>
         <canvas id="rhythm-canvas" width="800" height="120"></canvas>
@@ -863,6 +901,35 @@ const state = {
 // Variables para animación de ritmo
 let rhythmPhase = 0;
 let lastTimestamp = 0;
+
+// ------------------------------------------------------------------
+//  INACTIVIDAD (transparencia después de 3 segundos)
+// ------------------------------------------------------------------
+let inactivityTimer;
+const INACTIVITY_DELAY = 3000; // 3 segundos
+const appContainer = document.getElementById('djApp');
+
+function resetInactivityTimer() {
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    // Quitar clase dimmed si existe
+    if (appContainer.classList.contains('inactive')) {
+        appContainer.classList.remove('inactive');
+    }
+    // Iniciar nuevo timer
+    inactivityTimer = setTimeout(() => {
+        appContainer.classList.add('inactive');
+    }, INACTIVITY_DELAY);
+}
+
+// Eventos que reinician la inactividad
+function bindActivityEvents() {
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove', 'scroll'];
+    events.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer);
+    });
+    // También al hacer clic en cualquier botón o control ya incluido
+    resetInactivityTimer();
+}
 
 // ------------------------------------------------------------------
 //  FUNCIONES AUXILIARES
@@ -982,11 +1049,11 @@ function displayPlaylist(playlist) {
   });
   document.querySelectorAll('.load-deck-a').forEach(btn => btn.addEventListener('click', (e) => {
     const t = e.currentTarget;
-    loadToDeckNoAutoPlay('a', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'));
+    loadToDeckNoAutoPlay('a', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'), false);
   }));
   document.querySelectorAll('.load-deck-b').forEach(btn => btn.addEventListener('click', (e) => {
     const t = e.currentTarget;
-    loadToDeckNoAutoPlay('b', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'));
+    loadToDeckNoAutoPlay('b', t.getAttribute('data-video-id'), t.getAttribute('data-title'), t.getAttribute('data-artist'), false);
   }));
 }
 
@@ -1026,14 +1093,13 @@ async function loadYouTubePlaylist() {
     playlistIndex.a = 0; playlistIndex.b = 0;
     displayPlaylist(activePlaylist.a);
     updateStatus(`✅ Playlist cargada: ${playlist.length} canciones`);
-    if(playlist.length) loadToDeckNoAutoPlay('a', activePlaylist.a[0].videoId, activePlaylist.a[0].title, activePlaylist.a[0].artist);
+    if(playlist.length) loadToDeckNoAutoPlay('a', activePlaylist.a[0].videoId, activePlaylist.a[0].title, activePlaylist.a[0].artist, false);
   } catch(e) {
     resultsDiv.innerHTML = `<div style="text-align:center;color:var(--dj-muted);padding:20px">Error: ${e.message}</div>`;
     updateStatus('❌ Error al cargar playlist');
   }
 }
 
-// Nueva función: carga sin autoplay pero con loader, y al finalizar canción se reproduce automáticamente
 function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false) {
   if((deck === 'a' && isLoadingA) || (deck === 'b' && isLoadingB)) {
     updateStatus(`⏳ Ya cargando en Deck ${deck.toUpperCase()}, espera...`);
@@ -1067,7 +1133,6 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false
             updateUI(deck);
             showLoader(deck, false);
             if(deck === 'a') isLoadingA = false; else isLoadingB = false;
-            // Si es por autoPlayNext (siguiente canción automática), darle play directamente
             if(autoPlayNext) {
               setTimeout(() => { e.target.playVideo(); }, 200);
             }
@@ -1089,8 +1154,7 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false
             } else if(e.data === YT.PlayerState.ENDED) {
               state[deck].playing = false;
               document.getElementById(`play-${deck}`).textContent = '▶ PLAY';
-              // Reproducir siguiente canción automáticamente con autoPlay = true
-              nextTrackDeck(deck, true); // true indica que debe empezar a sonar sola
+              nextTrackDeck(deck, true);
             }
           },
           onError: (err) => {
@@ -1117,7 +1181,6 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext = false
   }
 }
 
-// Modificamos nextTrackDeck para aceptar un parámetro autoPlay que cargue y reproduzca automáticamente
 function nextTrackDeck(deck, autoPlay = false) {
   if(activePlaylist[deck].length === 0) return updateStatus(`⚠️ No hay playlist en Deck ${deck.toUpperCase()}`);
   let newIndex = playlistIndex[deck] + 1;
@@ -1217,15 +1280,12 @@ function drawRhythmVisualizer() {
   const h = canvas.height = canvas.clientHeight;
   ctx.clearRect(0, 0, w, h);
   
-  // Determinar qué deck está sonando y su color
   let activeColor = '#888';
   let intensity = 0;
   if(state.a.playing) {
     activeColor = '#00d4ff';
-    // Simular intensidad en base al progreso + tiempo real para dar sensación de ritmo
     intensity = 0.3 + 0.5 * (Math.sin(Date.now() * 0.02) * 0.5 + 0.5);
     if(state.a.progress > 0) {
-      // Pequeña modulación por el beat (simulado)
       intensity += 0.2 * Math.sin(state.a.progress * 20);
     }
   } else if(state.b.playing) {
@@ -1251,7 +1311,6 @@ function drawRhythmVisualizer() {
     let y = h - barHeight;
     ctx.fillStyle = activeColor;
     ctx.fillRect(x, y, barWidth, barHeight);
-    // Efecto de brillo
     ctx.shadowBlur = 5;
     ctx.shadowColor = activeColor;
     ctx.fillRect(x, y, barWidth, barHeight);
@@ -1284,7 +1343,6 @@ function drawWaveformAnimated() {
       }
       return;
     }
-    // animación cuando suena
     for(let i=0; i<barCount; i++) {
       let val = Math.sin(now * 8 + i * 0.3) * 0.5 + 0.5;
       val = 0.3 + val * 0.7;
@@ -1416,6 +1474,8 @@ drawRhythmVisualizer();
 loadYouTubeAPI();
 loop();
 setInterval(() => crossfade(document.getElementById('crossfader').value), 100);
+bindActivityEvents();  // Activar detección de inactividad
+resetInactivityTimer(); // Empezar con el timer activo
 </script>
 </body>
 </html>

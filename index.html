@@ -64,28 +64,54 @@
           z-index: 1;
           transition: var(--transition-opacity);
       }
-      /* Estado inactivo: todo se vuelve más transparente, pero no desaparece */
-      .dj-app.inactive .left-col,
-      .dj-app.inactive .right-col:not(.viz-section),
-      .dj-app.inactive .mixer,
-      .dj-app.inactive .decks,
-      .dj-app.inactive .playlist-panel,
-      .dj-app.inactive .yt-panel,
-      .dj-app.inactive .floating-btn,
-      .dj-app.inactive .quick-panel,
-      .dj-app.inactive .status-bar,
-      .dj-app.inactive .current-track-badge {
+      /* Modo transparente activado por el checkbox */
+      .dj-app.transparent .left-col,
+      .dj-app.transparent .right-col,
+      .dj-app.transparent .mixer,
+      .dj-app.transparent .decks,
+      .dj-app.transparent .playlist-panel,
+      .dj-app.transparent .yt-panel,
+      .dj-app.transparent .floating-btn,
+      .dj-app.transparent .quick-panel,
+      .dj-app.transparent .status-bar,
+      .dj-app.transparent .current-track-badge,
+      .dj-app.transparent .header {
           opacity: 0.35;
           transition: var(--transition-opacity);
       }
-      /* El visualizador de ritmo se mantiene más visible */
-      .dj-app.inactive .viz-section {
-          opacity: 0.85;
-          transition: var(--transition-opacity);
-      }
-      /* El header se atenúa un poco menos para que el título se vea */
-      .dj-app.inactive .header {
+      /* El header en transparente se atenúa un poco menos para que el título se vea */
+      .dj-app.transparent .header {
           opacity: 0.6;
+      }
+      
+      /* Checkbox flotante superior izquierda */
+      .transparent-toggle {
+          position: fixed;
+          top: 20px;
+          left: 20px;
+          z-index: 1100;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(5px);
+          padding: 8px 15px;
+          border-radius: 30px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          font-family: 'Share Tech Mono', monospace;
+          border: 1px solid var(--dj-amber);
+          color: var(--dj-amber);
+          cursor: pointer;
+      }
+      .transparent-toggle input {
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+          accent-color: var(--dj-amber);
+      }
+      .transparent-toggle label {
+          cursor: pointer;
+          user-select: none;
       }
       
       .header {
@@ -407,29 +433,6 @@
           overflow-y: auto;
           transition: var(--transition-opacity);
       }
-      .viz-section {
-          background: rgba(26,26,46,0.85);
-          backdrop-filter: blur(10px);
-          border: 1px solid var(--dj-border);
-          border-radius: 15px;
-          padding: 15px;
-          flex-shrink: 0;
-          transition: var(--transition-opacity);
-      }
-      .viz-label {
-          font-size: 11px;
-          color: var(--dj-muted);
-          letter-spacing: 2px;
-          margin-bottom: 10px;
-          text-align: center;
-      }
-      canvas#rhythm-canvas {
-          width: 100%;
-          height: 120px;
-          background: rgba(0,0,0,0.4);
-          border-radius: 12px;
-          display: block;
-      }
       
       .playlist-panel {
           background: rgba(26,26,46,0.85);
@@ -710,12 +713,19 @@
 
 <video id="bg-video" class="background-video" autoplay loop muted playsinline></video>
 <div class="background-overlay"></div>
+
+<!-- Checkbox para modo transparente - esquina superior izquierda -->
+<div class="transparent-toggle">
+    <input type="checkbox" id="transparentModeCheckbox">
+    <label for="transparentModeCheckbox">🎨 Modo transparente</label>
+</div>
+
 <div class="current-track-badge" id="track-badge">🎵 Esperando canción...</div>
 
 <div class="dj-app" id="djApp">
   <div class="header">
     <h1>DJMENDEZ PRO</h1>
-    <p>🎂 MI CUMPLEAÑOS 🎂 • VISUALIZADOR DE RITMO EN VIVO</p>
+    <p>🎂 MI CUMPLEAÑOS 🎂 • DJ CONTROLLER</p>
   </div>
 
   <div class="main-layout">
@@ -820,12 +830,6 @@
     </div>
 
     <div class="right-col">
-      <!-- VISUALIZADOR DE RITMO -->
-      <div class="viz-section">
-        <div class="viz-label">🎵 VISUALIZADOR DE RITMO 🎵</div>
-        <canvas id="rhythm-canvas" width="800" height="120"></canvas>
-      </div>
-
       <div class="playlist-panel">
         <div class="playlist-title">🎵 CARGAR PLAYLIST DE YOUTUBE 🎵</div>
         <div class="playlist-input-row">
@@ -884,7 +888,7 @@ let playerA = null, playerB = null;
 let currentBgVideoId = null;
 let apiReady = false;
 let isLoadingA = false, isLoadingB = false;
-let currentPlayingDeck = null; // 'a' o 'b'
+let currentPlayingDeck = null;
 
 let activePlaylist = { a: [], b: [] };
 let originalPlaylist = [];
@@ -898,38 +902,18 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, bpm: 132, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
-// Variables para animación de ritmo
-let rhythmPhase = 0;
-let lastTimestamp = 0;
-
 // ------------------------------------------------------------------
-//  INACTIVIDAD (transparencia después de 3 segundos)
+//  MODO TRANSPARENTE (checkbox)
 // ------------------------------------------------------------------
-let inactivityTimer;
-const INACTIVITY_DELAY = 3000; // 3 segundos
-const appContainer = document.getElementById('djApp');
-
-function resetInactivityTimer() {
-    if (inactivityTimer) clearTimeout(inactivityTimer);
-    // Quitar clase dimmed si existe
-    if (appContainer.classList.contains('inactive')) {
-        appContainer.classList.remove('inactive');
+const transparentCheckbox = document.getElementById('transparentModeCheckbox');
+const djApp = document.getElementById('djApp');
+transparentCheckbox.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        djApp.classList.add('transparent');
+    } else {
+        djApp.classList.remove('transparent');
     }
-    // Iniciar nuevo timer
-    inactivityTimer = setTimeout(() => {
-        appContainer.classList.add('inactive');
-    }, INACTIVITY_DELAY);
-}
-
-// Eventos que reinician la inactividad
-function bindActivityEvents() {
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'touchmove', 'scroll'];
-    events.forEach(event => {
-        window.addEventListener(event, resetInactivityTimer);
-    });
-    // También al hacer clic en cualquier botón o control ya incluido
-    resetInactivityTimer();
-}
+});
 
 // ------------------------------------------------------------------
 //  FUNCIONES AUXILIARES
@@ -1271,54 +1255,6 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// VISUALIZADOR DE RITMO (barras que suben y bajan al ritmo, con color del deck que suena)
-function drawRhythmVisualizer() {
-  const canvas = document.getElementById('rhythm-canvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width = canvas.clientWidth;
-  const h = canvas.height = canvas.clientHeight;
-  ctx.clearRect(0, 0, w, h);
-  
-  let activeColor = '#888';
-  let intensity = 0;
-  if(state.a.playing) {
-    activeColor = '#00d4ff';
-    intensity = 0.3 + 0.5 * (Math.sin(Date.now() * 0.02) * 0.5 + 0.5);
-    if(state.a.progress > 0) {
-      intensity += 0.2 * Math.sin(state.a.progress * 20);
-    }
-  } else if(state.b.playing) {
-    activeColor = '#ff2d78';
-    intensity = 0.3 + 0.5 * (Math.sin(Date.now() * 0.02) * 0.5 + 0.5);
-    if(state.b.progress > 0) {
-      intensity += 0.2 * Math.sin(state.b.progress * 20);
-    }
-  } else {
-    activeColor = '#ffaa00';
-    intensity = 0.2;
-  }
-  intensity = Math.min(0.9, Math.max(0.2, intensity));
-  
-  const barCount = 60;
-  const barWidth = (w / barCount) * 0.7;
-  const spacing = (w / barCount);
-  for(let i = 0; i < barCount; i++) {
-    let heightFactor = intensity * (0.5 + 0.5 * Math.sin(i * 0.3 + Date.now() * 0.01));
-    heightFactor = Math.pow(heightFactor, 1.5);
-    let barHeight = 5 + heightFactor * (h - 15);
-    let x = i * spacing + (spacing - barWidth)/2;
-    let y = h - barHeight;
-    ctx.fillStyle = activeColor;
-    ctx.fillRect(x, y, barWidth, barHeight);
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = activeColor;
-    ctx.fillRect(x, y, barWidth, barHeight);
-    ctx.shadowBlur = 0;
-  }
-  requestAnimationFrame(drawRhythmVisualizer);
-}
-
 // Dibujado de waveform animada individual para cada deck
 function drawWaveformAnimated() {
   const canvasA = document.getElementById('wave-a');
@@ -1470,12 +1406,9 @@ document.getElementById('shuffle-checkbox').addEventListener('change', (e) => {
 
 // Inicialización
 drawWaveformAnimated();
-drawRhythmVisualizer();
 loadYouTubeAPI();
 loop();
 setInterval(() => crossfade(document.getElementById('crossfader').value), 100);
-bindActivityEvents();  // Activar detección de inactividad
-resetInactivityTimer(); // Empezar con el timer activo
 </script>
 </body>
 </html>

@@ -110,8 +110,8 @@
       }
       .imagen-random {
           position: absolute;
-          max-width: 120px;
-          max-height: 120px;
+          max-width: 250px;
+          max-height: 250px;
           border-radius: 20px;
           box-shadow: 0 0 20px gold;
           animation: zoom 4s ease-out forwards;
@@ -738,6 +738,7 @@
           font-size: 10px;
           color: var(--dj-amber);
           z-index: 1000;
+          font-family: 'Orbitron', monospace;
       }
       @media (max-width: 1000px) {
           .mixer-row { flex-wrap: wrap; gap: 5px; }
@@ -770,6 +771,7 @@
 <div id="fiestaLayer" class="fiesta-layer"></div>
 <div class="strobe" id="strobe"></div>
 
+<!-- Badge que muestra la canción actual -->
 <div class="current-track-badge" id="track-badge">🎵 Esperando canción...</div>
 
 <div class="dj-app" id="djApp">
@@ -911,6 +913,29 @@ const state = {
   b: { playing: false, progress: 0, duration: 0, vol: 80, title: 'NO TRACK LOADED', artist: '— —', videoId: null }
 };
 
+// ---------- ACTUALIZAR BADGE DE CANCIÓN ----------
+function updateTrackBadge(deck, title) {
+    const badge = document.getElementById('track-badge');
+    if (deck === 'a' && state.a.playing) {
+        badge.innerHTML = `🎵 Ahora suena (A): ${title.substring(0, 35)} 🎵`;
+    } else if (deck === 'b' && state.b.playing) {
+        badge.innerHTML = `🎵 Ahora suena (B): ${title.substring(0, 35)} 🎵`;
+    } else if (state.a.playing) {
+        badge.innerHTML = `🎵 Ahora suena (A): ${state.a.title.substring(0, 35)} 🎵`;
+    } else if (state.b.playing) {
+        badge.innerHTML = `🎵 Ahora suena (B): ${state.b.title.substring(0, 35)} 🎵`;
+    } else {
+        // Si hay una canción cargada pero en pausa, mostrar "Cargada: ..."
+        if (state.a.videoId && !state.a.playing && state.a.title !== 'NO TRACK LOADED') {
+            badge.innerHTML = `⏸ Cargada (A): ${state.a.title.substring(0, 35)} ⏸`;
+        } else if (state.b.videoId && !state.b.playing && state.b.title !== 'NO TRACK LOADED') {
+            badge.innerHTML = `⏸ Cargada (B): ${state.b.title.substring(0, 35)} ⏸`;
+        } else {
+            badge.innerHTML = '🎵 Esperando canción...';
+        }
+    }
+}
+
 // ---------- EFECTOS DE CUMPLEAÑOS (con intensidad regulable) ----------
 let fiestaActive = false;
 let intensity = 30;
@@ -1003,13 +1028,13 @@ function startFiestaEffects() {
         };
         makeNombre();
         
-        // Imágenes aleatorias
+        // Imágenes aleatorias (TAMAÑO AUMENTADO)
         if(imagenesInterval) clearTimeout(imagenesInterval);
         const imgDelay = getDelayFromIntensity(4000);
         const makeImg = () => {
             if(!fiestaActive) return;
             const randomNum = Math.floor(Math.random()*10)+1;
-            const imgUrl = `${randomNum}.png`;
+            const imgUrl = `imagenes/${randomNum}.jpg`;
             const img = new Image();
             img.onload = () => {
                 const imgDiv = document.createElement('img');
@@ -1017,14 +1042,14 @@ function startFiestaEffects() {
                 imgDiv.className = 'imagen-random';
                 imgDiv.style.left = Math.random()*80+'%';
                 imgDiv.style.top = Math.random()*80+'%';
-                imgDiv.style.width = '100px';
+                imgDiv.style.width = '200px';  // más grande
                 layer.appendChild(imgDiv);
                 setTimeout(()=>imgDiv.remove(),4000);
             };
             img.onerror = () => {
                 const emoji = document.createElement('div');
                 emoji.className = 'numero-24';
-                emoji.style.fontSize = '40px';
+                emoji.style.fontSize = '60px';
                 emoji.textContent = ['🎂','🎈','🎉','🥳','🎁'][Math.floor(Math.random()*5)];
                 emoji.style.left = Math.random()*80+'%';
                 emoji.style.top = Math.random()*80+'%';
@@ -1066,7 +1091,7 @@ intensitySlider.addEventListener('input', (e)=>{
     }
 });
 
-// ---------- SINCRONIZACIÓN DE FONDO (CORREGIDA, visible) ----------
+// ---------- SINCRONIZACIÓN DE FONDO (con badge actualizado) ----------
 function initSyncPlayer() {
     const container = document.getElementById('syncPlayer');
     container.innerHTML = '';
@@ -1150,7 +1175,7 @@ document.addEventListener('click', (e)=>{
     if(!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) dropdownContent.classList.remove('show');
 });
 
-// ---------- FUNCIONES DJ ----------
+// ---------- FUNCIONES DJ (con actualización de badge) ----------
 function updateStatus(msg) { document.getElementById('status-bar').textContent = msg; console.log(msg); }
 function showLoader(deck, show) { document.getElementById(`loader-${deck}`).classList.toggle('active', show); }
 function updateEQ(deck, band, val){ eqState[deck][band]=parseInt(val); document.getElementById(`eq-${deck}-${band}-val`).textContent=val+'%'; }
@@ -1210,6 +1235,16 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext){
     if(deck==='a') isLoadingA=true; else isLoadingB=true;
     showLoader(deck,true);
     updateStatus(`Cargando ${title.substring(0,30)}...`);
+    // Actualizar badge con la canción cargada (aunque esté en pausa)
+    if (deck === 'a') {
+        state.a.title = title;
+        state.a.artist = artist;
+        updateTrackBadge('a', title);
+    } else {
+        state.b.title = title;
+        state.b.artist = artist;
+        updateTrackBadge('b', title);
+    }
     const loadFn=()=>{
         try{
             if(deck==='a' && playerA){ playerA.destroy(); playerA=null; }
@@ -1233,6 +1268,7 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext){
                         showLoader(deck,false);
                         if(deck==='a') isLoadingA=false; else isLoadingB=false;
                         if(autoPlayNext) setTimeout(()=>e.target.playVideo(),200);
+                        updateTrackBadge(deck, title);
                     },
                     onStateChange:e=>{
                         if(e.data===YT.PlayerState.PLAYING){
@@ -1240,9 +1276,11 @@ function loadToDeckNoAutoPlay(deck, videoId, title, artist, autoPlayNext){
                             document.getElementById(`play-${deck}`).textContent='⏸ PAUSE';
                             currentPlayingDeck=deck;
                             syncBackgroundWithDeck(deck);
+                            updateTrackBadge(deck, title);
                         } else if(e.data===YT.PlayerState.PAUSED){
                             state[deck].playing=false;
                             document.getElementById(`play-${deck}`).textContent='▶ PLAY';
+                            updateTrackBadge(deck, title);
                         } else if(e.data===YT.PlayerState.ENDED){
                             state[deck].playing=false;
                             document.getElementById(`play-${deck}`).textContent='▶ PLAY';
